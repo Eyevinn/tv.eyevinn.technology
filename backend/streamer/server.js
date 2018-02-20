@@ -34,7 +34,10 @@ class StreamerServer {
     const session = new Session(DEFAULT_USAGE_PROFILE, this.assetMgrUri, playlist);
     sessions[session.sessionId] = session;
     session.getMasterManifest().then(body => {
-      res.sendRaw(200, body, { "Content-Type": 'application/x-mpegURL'});
+      res.sendRaw(200, body, { 
+        "Content-Type": "application/x-mpegURL",
+        "Access-Control-Allow-Origin": "*"
+      });
       next();
     }).catch(err => {
       console.error(err);
@@ -48,7 +51,10 @@ class StreamerServer {
     const session = sessions[req.params[1]];
     if (session) {
       session.getMediaManifest(req.params[0]).then(body => {
-        res.sendRaw(200, body, { "Content-Type": 'application/x-mpegURL'});
+        res.sendRaw(200, body, { 
+          "Content-Type": "application/x-mpegURL",
+          "Access-Control-Allow-Origin": "*"
+        });
         next();
       }).catch(err => {
         console.error(err);
