@@ -1,0 +1,26 @@
+language: python
+python:
+  - "3.5"
+cache: pip
+install:
+  - pip install awscli
+script:
+  - ./build.sh
+
+before_deploy:
+  - aws s3 rm s3://origin-tv --recursive
+
+deploy:
+  on:
+    branch: master
+  provider: s3
+  access_key_id: $AWS_ACCESS_KEY_ID
+  secret_access_key: $AWS_SECRET_ACCESS_KEY
+  bucket: origin-tv
+  skip_cleanup: true
+  local_dir: frontend
+  region: eu-west-1
+  cache_control: "max-age=300"
+after_deploy:
+  - aws configure set preview.cloudfront true
+  - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
