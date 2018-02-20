@@ -1,0 +1,67 @@
+@font-face {
+  font-family: LevelOne;
+  src: url('LevelOne.woff');
+}
+
+body {
+  font-family: LevelOne, "Lucinda Grande" !important;
+  background-color: black;
+}
+
+#mainview {
+  width: 100%;
+}
+
+.overlay {
+  background-color: black;
+  opacity: 0.5;
+  position: absolute;
+  bottom: 0px;
+  height: 200px;
+  width: 100%;
+  transition: visibility 0s linear 0.7s, opacity 0.7s ease-in-out;
+}
+
+.overlay-hidden {
+  opacity: 0; visibility:hidden;
+}
+
+.overlay-visible {
+  transition-delay: 0s;visibility: visible; opacity: 0.5;
+}
+
+.logo {
+  background: url('eyevinnlogo.png') no-repeat;
+  background-size: 100% 100%;
+  width: 300px;
+  height: 80px;
+  position: absolute;
+  left: 20px;
+  top: 10px;
+  z-index: 10;
+}
+
+.sitedesc {
+  color: white;
+  font-size: 14pt;
+  position: absolute;
+  left: 20px;
+  top: 100px;
+}
+
+.instructions {
+  font-size: 10pt;
+  font-style: italic;
+  right: 40px;
+  top: 20px;
+  position: absolute;
+  color: white;
+}
+
+.video-stopped {
+  background: url('novideo.jpg') no-repeat;
+  background-size: 100% 100%;
+}
+.video-playing {
+  background-color: black;
+}
