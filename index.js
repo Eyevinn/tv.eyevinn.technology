@@ -12,8 +12,8 @@ if (ROLE === 'single-server') {
   assetMgr.listen(process.env.ASSETMGR_PORT || 8001);  
 } else if (ROLE === 'streamer-server') {
   const streamer = new StreamerServer(ASSETMGR_URI);
-  streamer.listen(process.env.STREAMER_PORT || 8000);
+  streamer.listen(process.env.PORT || 8000);
 } else if (ROLE === 'assetmgr-server') {
   const assetMgr = new AssetManager();
-  assetMgr.listen(process.env.ASSETMGR_PORT || 8001);
+  assetMgr.listen(process.env.PORT || 8001);
 }
