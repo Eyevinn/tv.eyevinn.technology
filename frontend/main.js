@@ -1,9 +1,19 @@
 var overlayTimer;
+var mainPlayer = {
+  uri: '',
+  tech: null,
+  videoElement: null
+};
 
 function initiatePlayer(hlsUri, videoElementId) {
   return new Promise(function(resolve, reject) {
     var videoElement = document.getElementById(videoElementId);
     var hls = new Hls();
+    if (videoElementId === 'mainview') {
+      mainPlayer.tech = hls;
+      mainPlayer.uri = hlsUri;
+      mainPlayer.videoElement = videoElement;
+    }
     hls.attachMedia(videoElement);
     hls.on(Hls.Events.MEDIA_ATTACHED, function () {
       hls.loadSource(hlsUri);
@@ -35,5 +45,25 @@ function initiateControllers(videoElement) {
       event.target.muted = event.target.muted ? false : true;
     });
     resolve();
+  });
+}
+
+function initiateClock() {
+  return new Promise(function(resolve, reject) {
+    var clockElement = document.getElementById('clock');
+
+    function formatTime(s) { 
+      var m = s.match(/^([0-9][0-9]:)([0-9][0-9]):*/);
+      return m[1] + m[2];
+    }
+
+    if (clockElement) {
+      var d = new Date();
+      clockElement.innerHTML = formatTime(d.toTimeString());
+      setInterval(function() {
+        clockElement.innerHTML = formatTime(new Date().toTimeString());
+      }, 500);
+    }
+
   });
 }

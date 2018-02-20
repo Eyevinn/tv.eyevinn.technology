@@ -58,6 +58,14 @@ body {
   color: white;
 }
 
+.clock {
+  font-size: 20pt;
+  position: absolute;
+  right: 50px;
+  top: 50px;
+  color: white;
+}
+
 .video-stopped {
   background: url('novideo.jpg') no-repeat;
   background-size: 100% 100%;

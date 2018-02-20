@@ -7,11 +7,12 @@
   </head>
   <body>
     <div id="videocontainer" class="video-stopped">
+      <div id="clock" class="clock"></div>
       <video id="mainview"></video>
       <div id="overlay" class="overlay overlay-hidden">
         <div class="logo"></div>
         <div class="sitedesc">Demonstration of a Cloud-based OTT-Only TV channel</div>
-        <div class="instructions">Click to mute / unmute</div>
+        <div class="instructions">Click on window to mute / unmute</div>
       </div>
     </div>    
     <script src="https://cdn.jsdelivr.net/npm/hls.js@0.8.9" type="text/javascript"></script>
@@ -24,7 +25,7 @@
           return initiateControllers(videoElement);
         })
         .then(function() {
-
+          return initiateClock();
         });
       });
     </script>
