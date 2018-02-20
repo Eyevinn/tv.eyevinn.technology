@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
     "dev-server": "DEBUG=assetmgr-*,streamer-* $(npm bin)/nodemon index.js"
   },
   "author": "Jonas Rydholm Birmé <jonas.birme@eyevinn.se>",
