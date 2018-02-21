@@ -8,23 +8,31 @@ var mainPlayer = {
 function initiatePlayer(hlsUri, videoElementId) {
   return new Promise(function(resolve, reject) {
     var videoElement = document.getElementById(videoElementId);
-    var hls = new Hls();
-    if (videoElementId === 'mainview') {
-      mainPlayer.tech = hls;
-      mainPlayer.uri = hlsUri;
-      mainPlayer.videoElement = videoElement;
-    }
-    hls.attachMedia(videoElement);
-    hls.on(Hls.Events.MEDIA_ATTACHED, function () {
-      hls.loadSource(hlsUri);
-    });
-    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-      resolve(videoElement);
-    });
     videoElement.addEventListener('playing', function(event) {
       var container = document.getElementById('videocontainer');
       container.className = 'video-playing';
     });
+
+    if (Hls.isSupported()) {
+      var hls = new Hls();
+      if (videoElementId === 'mainview') {
+        mainPlayer.tech = hls;
+        mainPlayer.uri = hlsUri;
+        mainPlayer.videoElement = videoElement;
+      }
+      hls.attachMedia(videoElement);
+      hls.on(Hls.Events.MEDIA_ATTACHED, function () {
+        hls.loadSource(hlsUri);
+      });
+      hls.on(Hls.Events.MANIFEST_PARSED, function() {
+        resolve(videoElement);
+      });
+    } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = hlsUri;
+      videoElement.addEventListener('canplay', function() {
+        resolve(videoElement);
+      });
+    }
   });
 }
 
