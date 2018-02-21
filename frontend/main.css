@@ -83,3 +83,30 @@ body {
 .video-playing {
   background-color: black;
 }
+
+#audiosymbol {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100px;
+  height: 100px;
+  z-index: 20;
+  margin: 20px 20px auto;
+  transition: visibility 0s linear 0.7s, opacity 0.7s ease-in-out;
+}
+
+.audio-muted {
+  background: url('audio-off.png') no-repeat;
+}
+
+.audio-unmuted {
+  background: url('audio-on.png') no-repeat;
+}
+
+.audio-hidden {
+  opacity: 0; visibility:hidden;
+}
+
+.audio-visible {
+  transition-delay: 0s;visibility: visible; opacity: 0.5;
+}

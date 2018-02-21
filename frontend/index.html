@@ -8,6 +8,7 @@
   <body>
     <div id="videocontainer" class="video-stopped">
       <div id="clock" class="clock"></div>
+      <div id="audiosymbol"></div>
       <video id="mainview"></video>
       <div id="overlay" class="overlay overlay-hidden">
         <div class="logo"></div>
@@ -28,6 +29,7 @@
       document.addEventListener("DOMContentLoaded", function(event) {
         initiatePlayer("https://ott-channel-engine.herokuapp.com/live/master.m3u8", "mainview")
         .then(function(videoElement) {
+          videoElement.muted = true;
           videoElement.play();
           return initiateControllers(videoElement);
         })

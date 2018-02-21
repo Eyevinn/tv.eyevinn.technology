@@ -1,4 +1,5 @@
 var overlayTimer;
+var audioOverlayTimer;
 var mainPlayer = {
   uri: '',
   tech: null,
@@ -28,7 +29,7 @@ function initiatePlayer(hlsUri, videoElementId) {
         resolve(videoElement);
       });
     } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = hlsUri;
+      videoElement.src = hlsUri;
       videoElement.addEventListener('canplay', function() {
         resolve(videoElement);
       });
@@ -52,6 +53,21 @@ function initiateControllers(videoElement) {
     videoElement.addEventListener('click', function(event) {
       event.target.muted = event.target.muted ? false : true;
     });
+
+    videoElement.addEventListener('volumechange', function(event) {
+      var audioElement = document.getElementById('audiosymbol');
+      if (event.target.muted) {
+        audioElement.className = 'audio-muted audio-visible';
+      } else {
+        audioElement.className = 'audio-unmuted audio-visible';        
+      }
+      clearTimeout(audioOverlayTimer);
+      audioOverlayTimer = setTimeout(function() {
+        var s = audioElement.className.replace('audio-visible', 'audio-hidden');
+        audioElement.className = s;
+      }, 5000);
+    });
+
     resolve();
   });
 }
