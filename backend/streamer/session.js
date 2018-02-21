@@ -32,6 +32,7 @@ class Session {
       this._tick().then(() => {
         const realBw = this._getNearestBandwidth(bw);
         const m3u8 = this.currentVod.getLiveMediaSequences(this._state.mediaSeq, realBw, this._state.vodMediaSeq);
+        debug(`[${this._sessionId}]: bandwidth=${realBw} vodMediaSeq=${this._state.vodMediaSeq}`);
         this._state.vodMediaSeq++;
         resolve(m3u8);
       }).catch(reject);
@@ -57,7 +58,7 @@ class Session {
       // State machine
       switch(this._state.state) {
         case SessionState.VOD_INIT:
-          debug("state=VOD_INIT");
+          debug(`[${this._sessionId}]: state=VOD_INIT`);
           this._getNextVod().then(hlsVod => {
             this.currentVod = hlsVod;
             return this.currentVod.load();
@@ -69,14 +70,14 @@ class Session {
           }).catch(reject);
           break;
         case SessionState.VOD_PLAYING:
-          debug("state=VOD_PLAYING");
+          debug(`[${this._sessionId}]: state=VOD_PLAYING`);
           if (this._state.vodMediaSeq === this.currentVod.getLiveMediaSequencesCount() - 1) {
             this._state.state = SessionState.VOD_NEXT_INIT;
           }
           resolve();
           break;
         case SessionState.VOD_NEXT_INIT:
-          debug("state=VOD_NEXT_INIT");
+          debug(`[${this._sessionId}]: state=VOD_NEXT_INIT`);
           const length = this.currentVod.getLiveMediaSequencesCount();
           let newVod;
           this._getNextVod().then(hlsVod => {
@@ -101,7 +102,7 @@ class Session {
     return new Promise((resolve, reject) => {
       request.get(this._assetMgrUri + '/nextVod/' + this._playlist, (err, resp, body) => {
         const data = JSON.parse(body);
-        debug('nextVod=' + data.uri);
+        debug(`[${this._sessionId}]: nextVod=${data.uri}`);
         const newVod = new HLSVod(data.uri);
         resolve(newVod);
       });
