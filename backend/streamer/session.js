@@ -63,8 +63,8 @@ class Session {
             return this.currentVod.load();
           }).then(() => {
             this._state.state = SessionState.VOD_PLAYING;
-            //this._state.vodMediaSeq = this.currentVod.getLiveMediaSequencesCount() - 5;
-            this._state.vodMediaSeq = 0;
+            this._state.vodMediaSeq = this.currentVod.getLiveMediaSequencesCount() - 5;
+            //this._state.vodMediaSeq = 0;
             resolve();
           }).catch(reject);
           break;
@@ -115,6 +115,7 @@ class Session {
         return availableBandwidths[i];
       }
     }
+    return availableBandwidths[availableBandwidths.length - 1];
   }
 }
 
