@@ -33,8 +33,16 @@ function initiatePlayer(hlsUri, videoElementId) {
       videoElement.addEventListener('canplay', function() {
         resolve(videoElement);
       });
+    } else {
+      reject('Unsupported device');
     }
   });
+}
+
+function displayErrorDlg(errmsg) {
+  var errorElement = document.getElementById('errordlg');
+  errorElement.className = 'error-visible';
+  errorElement.innerHTML = errmsg;
 }
 
 function initiateControllers(videoElement) {

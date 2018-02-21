@@ -6,6 +6,7 @@
     <link rel='stylesheet' href='main.css' />
   </head>
   <body>
+    <div id="errordlg" class="error-hidden"></div>
     <div id="videocontainer" class="video-stopped">
       <div id="clock" class="clock"></div>
       <div id="audiosymbol"></div>
@@ -35,6 +36,8 @@
         })
         .then(function() {
           return initiateClock();
+        }).catch(function(err) {
+          displayErrorDlg(err);
         });
       });
     </script>

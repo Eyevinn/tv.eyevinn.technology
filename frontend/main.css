@@ -110,3 +110,22 @@ body {
 .audio-visible {
   transition-delay: 0s;visibility: visible; opacity: 0.5;
 }
+
+#errordlg {
+  width: 100%;
+  background-color: red;
+  color: white;
+  font-size: 15pt;
+  height: 80px;
+  text-align: center;
+  padding-top: 20px;
+  opacity: 0.6;
+}
+
+.error-hidden {
+  display: none;
+}
+
+.error-visible {
+  display: block;
+}
