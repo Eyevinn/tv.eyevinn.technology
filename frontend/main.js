@@ -14,7 +14,7 @@ function initiatePlayer(hlsUri, videoElementId) {
       container.className = 'video-playing';
     });
 
-    if (Hls.isSupported()) {
+    if (Hls.isSupported() && !isMobileDevice()) {
       var hls = new Hls();
       if (videoElementId === 'mainview') {
         mainPlayer.tech = hls;
@@ -112,4 +112,11 @@ function parseQueryParams(search) {
     params[decodeURIComponent(m[1])] = (m[2] == '=' ? decodeURIComponent(m[3]) : true);
   }
   return params;
+}
+
+function isMobileDevice() {
+  var userAgent = window.navigator.userAgent;
+  return /iphone|ipod|ipad|android|blackberry|windows phone|iemobile|wpdesktop/
+      .test(userAgent.toLowerCase()) &&
+      !(/crkey/).test(userAgent.toLowerCase());
 }
