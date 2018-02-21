@@ -66,6 +66,16 @@ body {
   color: white;
 }
 
+.vod {
+  position: absolute;
+  left: 500px;
+  top: 0px;
+}
+
+.vod-thumbnail {
+  width: 200px;
+}
+
 .video-stopped {
   background: url('novideo.jpg') no-repeat;
   background-size: 100% 100%;
