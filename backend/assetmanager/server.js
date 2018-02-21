@@ -7,6 +7,8 @@ const VODs = [
   { id: 3, uri: "https://maitv-vod.lab.eyevinn.technology/streaming+tech+2017+HLS/Springhall_Jones/Springhall.m3u8" },
   { id: 4, uri: "https://maitv-vod.lab.eyevinn.technology/streaming+tech+2017+HLS/Lindqvist_Skaneby/Lindqvist.m3u8" },
   { id: 5, uri: "https://maitv-vod.lab.eyevinn.technology/streaming+tech+2017+HLS/Widlund/Widlund.m3u8" },
+  { id: 6, uri: "https://maitv-vod.lab.eyevinn.technology/stswe1/master.m3u8" },
+  { id: 7, uri: "https://maitv-vod.lab.eyevinn.technology/VINN.mp4/master.m3u8" }
 ];
 
 class AssetManager {
