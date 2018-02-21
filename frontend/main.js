@@ -29,7 +29,9 @@ function initiatePlayer(hlsUri, videoElementId) {
         resolve(videoElement);
       });
       hls.on(Hls.Events.ERROR, function(event, data) {
-        console.log("ERROR", data);
+        if (data.fatal) {
+          console.log("ERROR", data);
+        }
       });
     } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
       videoElement.src = hlsUri;
@@ -101,4 +103,13 @@ function initiateClock() {
     }
 
   });
+}
+
+function parseQueryParams(search) {
+  var re = /[?&]([^=&]+)(=?)([^&]*)/g;
+  var params = {};
+  while (m = re.exec(search)) {
+    params[decodeURIComponent(m[1])] = (m[2] == '=' ? decodeURIComponent(m[3]) : true);
+  }
+  return params;
 }
