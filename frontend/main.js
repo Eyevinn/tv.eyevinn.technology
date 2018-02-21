@@ -28,6 +28,9 @@ function initiatePlayer(hlsUri, videoElementId) {
       hls.on(Hls.Events.MANIFEST_PARSED, function() {
         resolve(videoElement);
       });
+      hls.on(Hls.Events.ERROR, function(event, data) {
+        console.log("ERROR", data);
+      });
     } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
       videoElement.src = hlsUri;
       videoElement.addEventListener('canplay', function() {
