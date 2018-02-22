@@ -31,6 +31,17 @@ function initiatePlayer(hlsUri, videoElementId) {
       hls.on(Hls.Events.ERROR, function(event, data) {
         if (data.fatal) {
           console.log("ERROR", data);
+          switch (data.type) {
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              console.log("fatal media error encountered, try to recover");
+              hls.recoverMediaError();
+              break;
+            default:
+              console.log("cannot recover");
+              hls.destroy();
+              displayErrorDlg("Fatal error playing back stream");
+              break;
+          }
         }
       });
     } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
