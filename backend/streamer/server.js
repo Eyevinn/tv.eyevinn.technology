@@ -48,10 +48,12 @@ class StreamerServer {
   }
 
   _handleMediaManifest(req, res, next) {
-    debug('req.url=' + req.url);
+    debug(`req.url=${req.url}`);
     const session = sessions[req.params[1]];
     if (session) {
       session.getMediaManifest(req.params[0]).then(body => {
+        debug(`[${session.sessionId}] body=`);
+        debug(body);
         res.sendRaw(200, body, { 
           "Content-Type": "application/x-mpegURL",
           "Access-Control-Allow-Origin": "*",
