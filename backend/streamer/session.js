@@ -34,6 +34,8 @@ class Session {
       this._tick().then(() => {
         if (this._state.state === SessionState.VOD_NEXT_INITIATING) {
           // Serve from cache
+          this._state.state = SessionState.VOD_PLAYING;
+          debug(`[${this._sessionId}]: serving m3u8 from cache`);
           resolve(this._state.lastM3u8);
         } else {
           const realBw = this._getNearestBandwidth(bw);
@@ -64,13 +66,19 @@ class Session {
   _tick() {
     return new Promise((resolve, reject) => {
       // State machine
+      let newVod;
+
       switch(this._state.state) {
         case SessionState.VOD_INIT:
           debug(`[${this._sessionId}]: state=VOD_INIT`);
-          this._getNextVod().then(hlsVod => {
-            this.currentVod = hlsVod;
+          this._getNextVod().then(uri => {
+            debug(`[${this._sessionId}]: got first VOD uri=${uri}`);
+            newVod = new HLSVod(uri);
+            this.currentVod = newVod;
             return this.currentVod.load();
           }).then(() => {
+            debug(`[${this._sessionId}]: first VOD loaded`);
+            debug(newVod);
             this._state.state = SessionState.VOD_PLAYING;
             this._state.vodMediaSeq = this.currentVod.getLiveMediaSequencesCount() - 5;
             if (this._state.vodMediaSeq < 0) {
@@ -81,7 +89,7 @@ class Session {
           }).catch(reject);
           break;
         case SessionState.VOD_PLAYING:
-          debug(`[${this._sessionId}]: state=VOD_PLAYING`);
+          debug(`[${this._sessionId}]: state=VOD_PLAYING (${this._state.vodMediaSeq}, ${this.currentVod.getLiveMediaSequencesCount()})`);
           if (this._state.vodMediaSeq === this.currentVod.getLiveMediaSequencesCount() - 1) {
             this._state.state = SessionState.VOD_NEXT_INIT;
           }
@@ -94,16 +102,16 @@ class Session {
         case SessionState.VOD_NEXT_INIT:
           debug(`[${this._sessionId}]: state=VOD_NEXT_INIT`);
           const length = this.currentVod.getLiveMediaSequencesCount();
-          let newVod;
           this._state.state = SessionState.VOD_NEXT_INITIATING;
-          this._getNextVod().then(hlsVod => {
-            debug(`[${this._sessionId}]: got next VOD`);
-            newVod = hlsVod;
-            return hlsVod.loadAfter(this.currentVod);
+          this._getNextVod().then(uri => {
+            debug(`[${this._sessionId}]: got next VOD uri=${uri}`);
+            newVod = new HLSVod(uri);
+            return newVod.loadAfter(this.currentVod);
           }).then(() => {
             debug(`[${this._sessionId}]: next VOD loaded`);
+            debug(newVod);
             this.currentVod = newVod;
-            this._state.state = SessionState.VOD_PLAYING;
+            debug(`[${this._sessionId}]: msequences=${this.currentVod.getLiveMediaSequencesCount()}`);
             this._state.vodMediaSeq = 0;
             this._state.mediaSeq += length;
             resolve();
@@ -122,8 +130,7 @@ class Session {
         const data = JSON.parse(body);
         debug(`[${this._sessionId}]: nextVod=${data.uri}`);
         debug(data);
-        const newVod = new HLSVod(data.uri);
-        resolve(newVod);
+        resolve(data.uri);
       }).on('error', err => {
         reject(err);
       });
