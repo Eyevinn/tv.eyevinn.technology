@@ -1,4 +1,5 @@
 const restify = require('restify');
+const errs = require('restify-errors');
 const debug = require('debug')('streamer-server');
 const Session = require('./session.js');
 
@@ -34,6 +35,8 @@ class StreamerServer {
     const session = new Session(DEFAULT_USAGE_PROFILE, this.assetMgrUri, playlist);
     sessions[session.sessionId] = session;
     session.getMasterManifest().then(body => {
+      debug(`[${session.sessionId}] body=`);
+      debug(body);
       res.sendRaw(200, body, { 
         "Content-Type": "application/x-mpegURL",
         "Access-Control-Allow-Origin": "*",
@@ -41,9 +44,7 @@ class StreamerServer {
       });
       next();
     }).catch(err => {
-      console.error(err);
-      res.send(err);
-      next();
+      next(this._errorHandler(err));
     });    
   }
 
@@ -61,14 +62,18 @@ class StreamerServer {
         });
         next();
       }).catch(err => {
-        console.error(err);
-        res.send(err);
-        next();
+        next(this._errorHandler(err));
       })
     } else {
-      res.send('Invalid session');
-      next();
+      const err = new errs.NotFoundError('Invalid session');
+      next(err);
     }
+  }
+
+  _errorHandler(errMsg) {
+    console.error(errMsg);
+    const err = new errs.InternalServerError(errMsg);
+    return err;    
   }
 }
 
