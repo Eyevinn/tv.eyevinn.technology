@@ -36,7 +36,8 @@ class StreamerServer {
     session.getMasterManifest().then(body => {
       res.sendRaw(200, body, { 
         "Content-Type": "application/x-mpegURL",
-        "Access-Control-Allow-Origin": "*"
+        "Access-Control-Allow-Origin": "*",
+        "Cache-Control": "max-age=4",
       });
       next();
     }).catch(err => {
@@ -53,7 +54,8 @@ class StreamerServer {
       session.getMediaManifest(req.params[0]).then(body => {
         res.sendRaw(200, body, { 
           "Content-Type": "application/x-mpegURL",
-          "Access-Control-Allow-Origin": "*"
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": "max-age=4",
         });
         next();
       }).catch(err => {
