@@ -53,10 +53,9 @@ class Session {
     return new Promise((resolve, reject) => {
       this._tick().then(() => {
         let m3u8 = "#EXTM3U\n";
-        Object.keys(this._usageProfile).forEach(bw => {
-          const v = this._usageProfile[bw];
-          m3u8 += '#EXT-X-STREAM-INF:BANDWIDTH=' + bw + ',RESOLUTION=' + v[0] + ',CODECS="' + v[1] + '"\n';
-          m3u8 += "master" + bw + ".m3u8;session=" + this._sessionId + "\n";
+        this.currentVod.getUsageProfiles().forEach(profile => {
+          m3u8 += '#EXT-X-STREAM-INF:BANDWIDTH=' + profile.bw + ',RESOLUTION=' + profile.resolution + ',CODECS="' + profile.codecs + '"\n';
+          m3u8 += "master" + profile.bw + ".m3u8;session=" + this._sessionId + "\n";
         });
         resolve(m3u8);
       }).catch(reject);
