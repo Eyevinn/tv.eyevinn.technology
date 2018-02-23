@@ -38,9 +38,8 @@ class Session {
           debug(`[${this._sessionId}]: serving m3u8 from cache`);
           resolve(this._state.lastM3u8);
         } else {
-          const realBw = this._getNearestBandwidth(bw);
-          const m3u8 = this.currentVod.getLiveMediaSequences(this._state.mediaSeq, realBw, this._state.vodMediaSeq);
-          debug(`[${this._sessionId}]: bandwidth=${realBw} vodMediaSeq=${this._state.vodMediaSeq}`);
+          const m3u8 = this.currentVod.getLiveMediaSequences(this._state.mediaSeq, bw, this._state.vodMediaSeq);
+          debug(`[${this._sessionId}]: bandwidth=${bw} vodMediaSeq=${this._state.vodMediaSeq}`);
           this._state.lastM3u8 = m3u8;
           this._state.vodMediaSeq++;
           resolve(m3u8);
