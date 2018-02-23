@@ -84,6 +84,7 @@ body {
   background-color: black;
 }
 
+
 #audiosymbol {
   position: absolute;
   top: 0px;
@@ -127,5 +128,30 @@ body {
 }
 
 .error-visible {
+  display: block;
+}
+
+.playbtn {
+  position: absolute;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: auto;
+  margin-bottom: auto;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 500px;
+  height: 500px;
+  background: url('play-button.png') no-repeat;
+  background-size: 100% 100%;
+  z-index: 20;
+}
+
+.playbtn-hidden {
+  display: none;
+}
+
+.playbtn-visible {
   display: block;
 }

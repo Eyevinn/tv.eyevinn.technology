@@ -10,18 +10,12 @@
     <div id="videocontainer" class="video-stopped">
       <div id="clock" class="clock"></div>
       <div id="audiosymbol"></div>
+      <div id="playbutton" class="playbtn playbtn-visible"></div>
       <video id="mainview"></video>
       <div id="overlay" class="overlay overlay-hidden">
         <div class="logo"></div>
         <div class="sitedesc">Demonstration of a Cloud-based OTT-Only TV channel</div>
         <div class="instructions">Click on window to mute / unmute</div>
-        <!--
-        <div id="ytupsell" class="vod">
-          <iframe class="vod-thumbnail" src="https://www.youtube.com/embed/KzqOIddTNPQ?rel=0&amp;showinfo=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-          <iframe class="vod-thumbnail" src="https://www.youtube.com/embed/hMtqWi_OoOU?rel=0&amp;showinfo=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-          <iframe class="vod-thumbnail" src="https://www.youtube.com/embed/EKAqyz7plxU?rel=0&amp;showinfo=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-        -->
       </div>
     </div>    
     <script src="https://cdn.jsdelivr.net/npm/hls.js@0.8.9" type="text/javascript"></script>
@@ -38,8 +32,15 @@
         initiatePlayer(uri, "mainview")
         .then(function(videoElement) {
           videoElement.muted = true;
-          videoElement.play();
-          return initiateControllers(videoElement);
+          var playPromise = videoElement.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(function(error) {
+              // Autplay was prevented
+              return initiateControllers(videoElement, false);
+            }).then(function() {
+              return initiateControllers(videoElement, true);
+            });
+          }
         })
         .then(function() {
           return initiateClock();

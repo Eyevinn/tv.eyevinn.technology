@@ -12,6 +12,8 @@ function initiatePlayer(hlsUri, videoElementId) {
     videoElement.addEventListener('playing', function(event) {
       var container = document.getElementById('videocontainer');
       container.className = 'video-playing';
+      var playButton = document.getElementById('playbutton');
+      playButton.className = 'playbtn playbtn-hidden';
     });
 
     if (Hls.isSupported() && !isMobileDevice()) {
@@ -61,8 +63,15 @@ function displayErrorDlg(errmsg) {
   errorElement.innerHTML = errmsg;
 }
 
-function initiateControllers(videoElement) {
+function initiateControllers(videoElement, canAutoPlay) {
   return new Promise(function(resolve, reject) {
+    if (!canAutoPlay) {
+      var playButton = document.getElementById('playbutton');
+      playButton.className = 'playbtn playbtn-visible';
+      playButton.addEventListener('click', function(event) {
+        videoElement.play();
+      });
+    }
     document.addEventListener('mousemove', function(event) {
       clearTimeout(overlayTimer);
       var overlayElement = document.getElementById('overlay');
