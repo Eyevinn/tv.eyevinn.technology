@@ -22,8 +22,9 @@ function getRandomItem() {
               reject(err);
           } else {
               console.log(data);
-              const itemCount = data.Table.ItemCount || 7;
-              const rndItemId = Math.floor(Math.random() * itemCount);
+              const itemCount = data.Table.ItemCount || 13;
+              let rndItemId = Math.floor(Math.random() * (itemCount-1));
+              rndItemId++;
               const params = {
                   Key: {
                       "id": {
@@ -74,4 +75,3 @@ exports.handler = (event, context, callback) => {
             done(new Error(`Unsupported method "${event.httpMethod}"`));
     }
 };
-
