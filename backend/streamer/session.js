@@ -57,6 +57,12 @@ class Session {
           m3u8 += '#EXT-X-STREAM-INF:BANDWIDTH=' + profile.bw + ',RESOLUTION=' + profile.resolution + ',CODECS="' + profile.codecs + '"\n';
           m3u8 += "master" + profile.bw + ".m3u8;session=" + this._sessionId + "\n";
         });
+        this.produceEvent({
+          type: 'NOW_PLAYING',
+          data: {
+            title: this.currentMetadata.title,
+          }
+        });
         resolve(m3u8);
       }).catch(reject);
     });
