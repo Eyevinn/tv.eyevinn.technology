@@ -22,6 +22,7 @@ class Session {
       lastM3u8: null,
     };
     this.currentVod;
+    this.currentMetadata = {};
     this._events = [];
   }
 
@@ -62,7 +63,7 @@ class Session {
   }
 
   consumeEvent() {
-    return this._events.pop();
+    return this._events.shift();
   }
 
   produceEvent(event) {
@@ -90,6 +91,12 @@ class Session {
             if (this._state.vodMediaSeq < 0) {
               this._state.vodMediaSeq = 0;
             }
+            this.produceEvent({
+              type: 'NOW_PLAYING',
+              data: {
+                title: this.currentMetadata.title,
+              }
+            });
             //this._state.vodMediaSeq = 0;
             resolve();
           }).catch(reject);
@@ -112,6 +119,13 @@ class Session {
           this._getNextVod().then(uri => {
             debug(`[${this._sessionId}]: got next VOD uri=${uri}`);
             newVod = new HLSVod(uri);
+            this.produceEvent({
+              type: 'NEXT_VOD_SELECTED',
+              data: {
+                uri: uri,
+                title: this.currentMetadata.title || '',
+              }
+            });
             return newVod.loadAfter(this.currentVod);
           }).then(() => {
             debug(`[${this._sessionId}]: next VOD loaded`);
@@ -120,6 +134,12 @@ class Session {
             debug(`[${this._sessionId}]: msequences=${this.currentVod.getLiveMediaSequencesCount()}`);
             this._state.vodMediaSeq = 0;
             this._state.mediaSeq += length;
+            this.produceEvent({
+              type: 'NOW_PLAYING',
+              data: {
+                title: this.currentMetadata.title,
+              }
+            });            
             resolve();
           }).catch(reject);
           break;
@@ -136,13 +156,9 @@ class Session {
         const data = JSON.parse(body);
         debug(`[${this._sessionId}]: nextVod=${data.uri}`);
         debug(data);
-        this.produceEvent({
-          type: 'NEXT_VOD_SELECTED',
-          data: {
-            uri: data.uri,
-            title: '',
-          }
-        });
+        this.currentMetadata = {
+          title: data.title || '',
+        };
         resolve(data.uri);
       }).on('error', err => {
         reject(err);

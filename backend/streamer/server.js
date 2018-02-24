@@ -11,6 +11,7 @@ class StreamerServer {
   constructor(assetMgrUri) {
     this.server = restify.createServer();
     this.assetMgrUri = assetMgrUri;
+    this.server.use(restify.plugins.queryParser());
 
     this.server.get('/live/master.m3u8', this._handleMasterManifest.bind(this));
     this.server.get(/^\/live\/master(\d+).m3u8;session=(.*)$/, this._handleMediaManifest.bind(this));
@@ -25,11 +26,16 @@ class StreamerServer {
 
   _handleMasterManifest(req, res, next) {
     debug('req.url=' + req.url);
+    debug(req.query);
+    let session;
     const playlist = 'random';
-    const session = new Session(this.assetMgrUri, playlist);
+    if (req.query['session'] && sessions[req.query['session']]) {
+      session = sessions[req.query['session']];
+    } else {
+      session = new Session(this.assetMgrUri, playlist);
+      sessions[session.sessionId] = session;
+    }
     const eventStream = new EventStream(session);
-
-    sessions[session.sessionId] = session;
     eventStreams[session.sessionId] = eventStream;
 
     session.getMasterManifest().then(body => {
