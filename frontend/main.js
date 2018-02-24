@@ -28,6 +28,10 @@ function initiatePlayer(hlsUri, videoElementId) {
       hls.on(Hls.Events.MEDIA_ATTACHED, function () {
         hls.loadSource(hlsUri);
       });
+      hls.on(Hls.Events.MANIFEST_LOADED, function(event, data) {
+        var sessionId = data.networkDetails.getResponseHeader('X-Session-Id');
+        document.cookie = 'event_stream_session_id=' + sessionId;
+      });
       hls.on(Hls.Events.MANIFEST_PARSED, function() {
         resolve(videoElement);
       });
@@ -126,6 +130,24 @@ function initiateClock() {
   });
 }
 
+function initiateEventStreamPoller(streamUri) {
+  return new Promise(function(resolve, reject) {
+    setInterval(function() {
+      var cookies = document.cookie.split(';');
+      var sessionCookie = cookies.find(function(s) { return s.match(/event_stream_session_id/); });
+      if (sessionCookie) {
+        var sessionId = sessionCookie.split('=')[1];
+        if (sessionId) {
+          getEvent(streamUri, sessionId).then(function(event) {
+            console.log(event);
+          });
+        }
+      }
+    }, 5000);
+    resolve();
+  });
+}
+
 function initiateTicker() {
   return new Promise(function(resolve, reject) {
     var tickerElement = document.getElementById('ticker');
@@ -152,4 +174,15 @@ function isMobileDevice() {
   return /iphone|ipod|ipad|android|blackberry|windows phone|iemobile|wpdesktop/
       .test(userAgent.toLowerCase()) &&
       !(/crkey/).test(userAgent.toLowerCase());
+}
+
+function getEvent(endpoint, sessionId) {
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.onloadend = function(event) {
+      resolve(event.target.response);
+    }
+    xhr.open('GET', endpoint + '/' + sessionId);
+    xhr.send();
+  });
 }
