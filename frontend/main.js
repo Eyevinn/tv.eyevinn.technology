@@ -59,8 +59,8 @@ function initiatePlayer(hlsUri, videoElementId, noresume) {
     } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
       videoElement.src = hlsUri;
       videoElement.addEventListener('canplay', function() {
-        resolve(videoElement);
       });
+      resolve(videoElement);
     } else {
       reject('Unsupported device');
     }
