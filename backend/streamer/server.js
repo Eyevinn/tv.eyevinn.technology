@@ -2,17 +2,10 @@ const restify = require('restify');
 const errs = require('restify-errors');
 const debug = require('debug')('streamer-server');
 const Session = require('./session.js');
-
-const DEFAULT_USAGE_PROFILE = {
-  "12494856": [ "960x540", "mp4a.40.2, avc1.4d001f" ],
-  "5480576": [ "640x360", "mp4a.40.2, avc1.4d001e" ],
-  "3885960": [ "640x360", "mp4a.40.2, avc1.4d001e" ],
-  "2050328": [ "640x360", "mp4a.40.2, avc1.4d001e" ],
-  "718536": [ "428x240", "mp4a.40.2, avc1.42e015" ],
-  "391792": [ "428x240", "mp4a.40.2, avc1.42e015" ],
-};
+const EventStream = require('./event_stream.js');
 
 const sessions = {}; // Should be a persistent store...
+const eventStreams = {};
 
 class StreamerServer {
   constructor(assetMgrUri) {
@@ -21,6 +14,7 @@ class StreamerServer {
 
     this.server.get('/live/master.m3u8', this._handleMasterManifest.bind(this));
     this.server.get(/^\/live\/master(\d+).m3u8;session=(.*)$/, this._handleMediaManifest.bind(this));
+    this.server.get('/eventstream/:sessionId', this._handleEventStream.bind(this));
   }
 
   listen(port) {
@@ -32,15 +26,22 @@ class StreamerServer {
   _handleMasterManifest(req, res, next) {
     debug('req.url=' + req.url);
     const playlist = 'random';
-    const session = new Session(DEFAULT_USAGE_PROFILE, this.assetMgrUri, playlist);
+    const session = new Session(this.assetMgrUri, playlist);
+    const eventStream = new EventStream(session);
+
     sessions[session.sessionId] = session;
+    eventStreams[session.sessionId] = eventStream;
+
     session.getMasterManifest().then(body => {
       debug(`[${session.sessionId}] body=`);
       debug(body);
       res.sendRaw(200, body, { 
         "Content-Type": "application/x-mpegURL",
         "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "X-Session-Id",
+        "Access-Control-Expose-Headers": "X-Session-Id",
         "Cache-Control": "max-age=4",
+        "X-Session-Id": session.sessionId,
       });
       next();
     }).catch(err => {
@@ -68,6 +69,32 @@ class StreamerServer {
       const err = new errs.NotFoundError('Invalid session');
       next(err);
     }
+  }
+
+  _handleEventStream(req, res, next) {
+    debug(`req.url=${req.url}`);
+    const eventStream = eventStreams[req.params.sessionId];
+    if (eventStream) {
+      eventStream.poll().then(body => {
+        res.sendRaw(200, body, { 
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Cache-Control": "max-age=4",
+        });
+        next();
+      }).catch(err => {
+        next(this._errorHandler(err));
+      });
+    } else {
+      // Silent error
+      debug(`No event stream found for session=${req.params.sessionId}`);
+      res.sendRaw(200, '{}', { 
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Cache-Control": "max-age=4",
+      });
+      next();
+    } 
   }
 
   _errorHandler(errMsg) {

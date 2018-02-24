@@ -11,8 +11,7 @@ const SessionState = Object.freeze({
 });
 
 class Session {
-  constructor(usageProfile, assetMgrUri, playlist) {
-    this._usageProfile = usageProfile;
+  constructor(assetMgrUri, playlist) {
     this._assetMgrUri = assetMgrUri;
     this._playlist = playlist;
     this._sessionId = crypto.randomBytes(20).toString('hex');
@@ -23,6 +22,7 @@ class Session {
       lastM3u8: null,
     };
     this.currentVod;
+    this._events = [];
   }
 
   get sessionId() {
@@ -59,6 +59,14 @@ class Session {
         resolve(m3u8);
       }).catch(reject);
     });
+  }
+
+  consumeEvent() {
+    return this._events.pop();
+  }
+
+  produceEvent(event) {
+    this._events.push(event);
   }
 
   _tick() {
@@ -128,6 +136,13 @@ class Session {
         const data = JSON.parse(body);
         debug(`[${this._sessionId}]: nextVod=${data.uri}`);
         debug(data);
+        this.produceEvent({
+          type: 'NEXT_VOD_SELECTED',
+          data: {
+            uri: data.uri,
+            title: '',
+          }
+        });
         resolve(data.uri);
       }).on('error', err => {
         reject(err);
