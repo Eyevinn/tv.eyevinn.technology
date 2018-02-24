@@ -24,6 +24,13 @@
   </head>
   <body>
     <div id="errordlg" class="error-hidden"></div>
+    <div id="ticker" class="ticker-wrap ticker-hidden">
+      <div class="ticker">
+        <div class="ticker__item">You are watching a demonstration of a server-less OTT-Only TV Channel.
+      From our content repository with already encoded VOD packages we 
+      dynamically stitch these VOD packages together into a live stream.</div>
+      </div>
+    </div>
     <div id="videocontainer" class="video-stopped">
       <div id="clock" class="clock"></div>
       <div id="audiosymbol"></div>
@@ -31,7 +38,10 @@
       <video id="mainview"></video>
       <div id="overlay" class="overlay overlay-hidden">
         <div class="logo"></div>
-        <div class="sitedesc">Demonstration of a Cloud-based OTT-Only TV channel</div>
+        <div class="sitedesc">
+          <p>Demonstration of a Server-less OTT-Only TV channel Playout</p>
+          <p class="small">Read more about the project <a href="https://medium.com/@eyevinntechnology/server-less-ott-only-playout-bc5a7f2e6d04">here</a></p>
+        </div>
         <div class="instructions">Click on window to mute / unmute</div>
       </div>
     </div>    
@@ -61,6 +71,8 @@
         })
         .then(function() {
           return initiateClock();
+        }).then(function() {
+          return initiateTicker();
         }).catch(function(err) {
           displayErrorDlg(err);
         });

@@ -1,5 +1,6 @@
 var overlayTimer;
 var audioOverlayTimer;
+var tickerOverlayTimer;
 var mainPlayer = {
   uri: '',
   tech: null,
@@ -121,7 +122,19 @@ function initiateClock() {
         clockElement.innerHTML = formatTime(new Date().toTimeString());
       }, 500);
     }
+    resolve();
+  });
+}
 
+function initiateTicker() {
+  return new Promise(function(resolve, reject) {
+    var tickerElement = document.getElementById('ticker');
+    tickerElement.className = 'ticker-wrap ticker-visible';
+    tickerOverlayTimer = setTimeout(function() {
+      var s = tickerElement.className.replace('ticker-visible', 'ticker-hidden');
+      tickerElement.className = s;
+    }, 80000);
+    resolve();
   });
 }
 
