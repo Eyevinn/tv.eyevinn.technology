@@ -161,7 +161,6 @@ function eventHandler(event) {
 }
 
 function updateMetadata(title, metadata) {
-  console.log(metadata);
   var metadataElement = document.getElementById('metadata');
   metadataElement.innerHTML = "<p>" + title + "</p>";
   metadataElement.innerHTML += "<h2>" + metadata.title + "</h2>";
