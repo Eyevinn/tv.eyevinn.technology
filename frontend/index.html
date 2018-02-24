@@ -42,6 +42,7 @@
           <p>Demonstration of a Server-less OTT-Only TV channel Playout</p>
           <p class="small">Read more about the project <a href="https://medium.com/@eyevinntechnology/server-less-ott-only-playout-bc5a7f2e6d04">here</a></p>
         </div>
+        <div id="metadata"></div>
         <div class="instructions">Click on window to mute / unmute</div>
       </div>
     </div>    
@@ -59,7 +60,7 @@
         eventStreamUri = 'https://ott-channel-engine.herokuapp.com/eventstream';
       }
       document.addEventListener("DOMContentLoaded", function(event) {
-        initiatePlayer(uri, "mainview")
+        initiatePlayer(uri, "mainview", params['noresume'])
         .then(function(videoElement) {
           videoElement.muted = true;
           var playPromise = videoElement.play();

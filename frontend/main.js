@@ -7,7 +7,7 @@ var mainPlayer = {
   videoElement: null
 };
 
-function initiatePlayer(hlsUri, videoElementId) {
+function initiatePlayer(hlsUri, videoElementId, noresume) {
   return new Promise(function(resolve, reject) {
     var videoElement = document.getElementById(videoElementId);
     videoElement.addEventListener('playing', function(event) {
@@ -16,6 +16,11 @@ function initiatePlayer(hlsUri, videoElementId) {
       var playButton = document.getElementById('playbutton');
       playButton.className = 'playbtn playbtn-hidden';
     });
+
+    var sessionId = getSessionIdFromCookie();
+    if (sessionId && !noresume) {
+      hlsUri += '?session=' + sessionId;
+    }
 
     if (Hls.isSupported() && !isMobileDevice()) {
       var hls = new Hls();
@@ -133,19 +138,33 @@ function initiateClock() {
 function initiateEventStreamPoller(streamUri) {
   return new Promise(function(resolve, reject) {
     setInterval(function() {
-      var cookies = document.cookie.split(';');
-      var sessionCookie = cookies.find(function(s) { return s.match(/event_stream_session_id/); });
-      if (sessionCookie) {
-        var sessionId = sessionCookie.split('=')[1];
-        if (sessionId) {
-          getEvent(streamUri, sessionId).then(function(event) {
-            console.log(event);
-          });
-        }
+      var sessionId = getSessionIdFromCookie();
+      if (sessionId) {
+        getEvent(streamUri, sessionId).then(function(event) {
+          eventHandler(event);
+        });
       }
-    }, 5000);
+    }, 10000);
     resolve();
   });
+}
+
+function eventHandler(event) {
+  switch(event.type) {
+    case 'NEXT_VOD_SELECTED':
+      updateMetadata('Coming up next', event.data);
+      break;
+    case 'NOW_PLAYING':
+      updateMetadata('Now playing', event.data);
+      break;
+  }
+}
+
+function updateMetadata(title, metadata) {
+  console.log(metadata);
+  var metadataElement = document.getElementById('metadata');
+  metadataElement.innerHTML = "<p>" + title + "</p>";
+  metadataElement.innerHTML += "<h2>" + metadata.title + "</h2>";
 }
 
 function initiateTicker() {
@@ -180,9 +199,19 @@ function getEvent(endpoint, sessionId) {
   return new Promise(function(resolve, reject) {
     var xhr = new XMLHttpRequest();
     xhr.onloadend = function(event) {
-      resolve(event.target.response);
+      resolve(JSON.parse(event.target.response));
     }
     xhr.open('GET', endpoint + '/' + sessionId);
     xhr.send();
   });
+}
+
+function getSessionIdFromCookie() {
+  var cookies = document.cookie.split(';');
+  var sessionCookie = cookies.find(function(s) { return s.match(/event_stream_session_id/); });
+  if (sessionCookie) {
+    var sessionId = sessionCookie.split('=')[1];
+    return sessionId;
+  }
+  return null;
 }

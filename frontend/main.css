@@ -231,3 +231,14 @@ body {
   font-size: 2rem;
   color: white;
 }
+
+#metadata {
+  width: 400px;
+  height: 100px;
+  left: 40px;
+  top: 20px;
+  position: fixed;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  color: white;
+}
