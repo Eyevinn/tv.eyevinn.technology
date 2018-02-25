@@ -7,7 +7,7 @@ var mainPlayer = {
   videoElement: null
 };
 
-function initiatePlayer(hlsUri, videoElementId, noresume) {
+function initiatePlayer(hlsUri, videoElementId, playlist, noresume) {
   return new Promise(function(resolve, reject) {
     var videoElement = document.getElementById(videoElementId);
     videoElement.addEventListener('playing', function(event) {
@@ -18,8 +18,18 @@ function initiatePlayer(hlsUri, videoElementId, noresume) {
     });
 
     var sessionId = getSessionIdFromCookie();
+    var queryParams = {};
     if (sessionId && !noresume) {
-      hlsUri += '?session=' + sessionId;
+      queryParams['session'] = sessionId;
+    }
+    if (playlist) {
+      queryParams['playlist'] = playlist;
+    }
+
+    if (Object.keys(queryParams).length > 0) {
+      hlsUri += '?' + Object.keys(queryParams).map(function(key) {
+        return [key, queryParams[key]].map(encodeURIComponent).join("=");
+      }).join("&");
     }
 
     if (Hls.isSupported() && !isMobileDevice()) {
