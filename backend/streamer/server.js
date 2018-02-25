@@ -28,9 +28,16 @@ class StreamerServer {
     debug('req.url=' + req.url);
     debug(req.query);
     let session;
-    const playlist = 'random';
+    let playlist = 'random';
+    if (req.query['playlist']) {
+      playlist = req.query['playlist'];
+    }
     if (req.query['session'] && sessions[req.query['session']]) {
       session = sessions[req.query['session']];
+      if (session.currentPlaylist !== playlist) {
+        session = new Session(this.assetMgrUri, playlist);
+        sessions[session.sessionId] = session;
+      }
     } else {
       session = new Session(this.assetMgrUri, playlist);
       sessions[session.sessionId] = session;

@@ -20,6 +20,7 @@ class Session {
       vodMediaSeq: 0,
       state: SessionState.VOD_INIT,
       lastM3u8: null,
+      playlistPosition: 0,
     };
     this.currentVod;
     this.currentMetadata = {};
@@ -28,6 +29,10 @@ class Session {
 
   get sessionId() {
     return this._sessionId;
+  }
+
+  get currentPlaylist() {
+    return this._playlist;
   }
 
   getMediaManifest(bw) {
@@ -94,7 +99,7 @@ class Session {
             debug(newVod);
             this._state.state = SessionState.VOD_PLAYING;
             this._state.vodMediaSeq = this.currentVod.getLiveMediaSequencesCount() - 5;
-            if (this._state.vodMediaSeq < 0) {
+            if (this._state.vodMediaSeq < 0 || this._playlist !== 'random') {
               this._state.vodMediaSeq = 0;
             }
             this.produceEvent({
@@ -158,9 +163,14 @@ class Session {
 
   _getNextVod() {
     return new Promise((resolve, reject) => {
-      request.get(this._assetMgrUri + '/nextVod/' + this._playlist, (err, resp, body) => {
+      this._state.playlistPosition++;
+      const nextVodUri = this._assetMgrUri + '/nextVod/' + this._playlist + '?position=' + this._state.playlistPosition;
+      request.get(nextVodUri, (err, resp, body) => {
         const data = JSON.parse(body);
-        debug(`[${this._sessionId}]: nextVod=${data.uri}`);
+        if (data.playlistPosition !== undefined) {
+          this._state.playlistPosition = data.playlistPosition;
+        }
+        debug(`[${this._sessionId}]: nextVod=${data.uri} new position=${this._state.playlistPosition}`);
         debug(data);
         this.currentMetadata = {
           title: data.title || '',
