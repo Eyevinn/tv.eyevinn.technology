@@ -5,73 +5,139 @@ const AWS = require('aws-sdk');
 const ddb = new AWS.DynamoDB({apiVersion: '2012-10-08'});
 
 const FALLBACK_ASSETS = [
-  { id: 1, uri: "https://maitv-vod.lab.eyevinn.technology/streaming+tech+2017+HLS/Arash/Arash.m3u8" },
-  { id: 2, uri: "https://maitv-vod.lab.eyevinn.technology/streaming+tech+2017+HLS/Ozer/Ozer.m3u8" },
-  { id: 3, uri: "https://maitv-vod.lab.eyevinn.technology/streaming+tech+2017+HLS/Springhall_Jones/Springhall.m3u8" },
-  { id: 4, uri: "https://maitv-vod.lab.eyevinn.technology/streaming+tech+2017+HLS/Lindqvist_Skaneby/Lindqvist.m3u8" },
-  { id: 5, uri: "https://maitv-vod.lab.eyevinn.technology/streaming+tech+2017+HLS/Widlund/Widlund.m3u8" },
-  { id: 6, uri: "https://maitv-vod.lab.eyevinn.technology/stswe1/master.m3u8" },
-  { id: 7, uri: "https://maitv-vod.lab.eyevinn.technology/VINN.mp4/master.m3u8" },
+  { id: 1, title: "Vinngroup Promotion", uri: "https://maitv-vod.lab.eyevinn.technology/VINN.mp4/master.m3u8" },
+  { id: 2, title: "Tears of Steel", uri: "https://maitv-vod.lab.eyevinn.technology/tearsofsteel_4k.mov/master.m3u8" },
+  { id: 3, title: "Att jobba på Vinnter", uri: "https://maitv-vod.lab.eyevinn.technology/Attjobbapavinnter.mp4/master.m3u8"  },
+  { id: 4, title: "Jan Ozer at Streaming Tech Sweden 2017", uri: "https://maitv-vod.lab.eyevinn.technology/stswe17-ozer.mp4/master.m3u8" },
+  { id: 5, title: "Come Shine recording at Atlantis Studios", uri: "https://maitv-vod.lab.eyevinn.technology/ComeShineiatlantis.mp4/master.m3u8" },
+  { id: 6, title: "Reportage från Klassiker-garaget", uri: "https://maitv-vod.lab.eyevinn.technology/Klassiker_garaget.mp4/master.m3u8" },
+  { id: 7, title: "Marcus Lindén at Streaming Tech Sweden 2017", uri: "https://maitv-vod.lab.eyevinn.technology/stswe17-linden.mp4/master.m3u8" },
 ]
-    
+
+const FALLBACK_PLAYLISTS = [
+  { id: "stswe17", title: "Streaming Tech Sweden 2017", assets: [4, 5, 8] },
+  { id: "skaneby", title: "Skaneby productions", assets: [3, 6, 7] },
+];
+
 function getRandomItem() {
-    return new Promise((resolve, reject) => {
-       ddb.describeTable({ TableName: 'maitv-assets' }, (err, data) => {
-          if (err) {
-              console.log(err);
-              reject(err);
-          } else {
-              console.log(data);
-              const itemCount = data.Table.ItemCount || 13;
-              let rndItemId = Math.floor(Math.random() * (itemCount-1));
-              rndItemId++;
-              const params = {
-                  Key: {
-                      "id": {
-                        N: rndItemId.toString() 
-                      }
-                  },
-                  TableName: 'maitv-assets'
-              };
-              console.log(params);
-              ddb.getItem(params, (err2, data2) => {
-                console.log(data2);
-                if (err2) {
-                    console.log(err2);
-                    reject(err2);
-                } else {
-                    resolve({ id: rndItemId, uri: data2.Item['uri'].S }); 
-                }
-              });
-          }
-       });
+  return new Promise((resolve, reject) => {
+    ddb.describeTable({ TableName: 'maitv-assets' }, (err, data) => {
+      if (err) {
+        console.log(err);
+        reject(err);
+      } else {
+        console.log(data);
+        const itemCount = data.Table.ItemCount || 13;
+        let rndItemId = Math.floor(Math.random() * (itemCount-1));
+        rndItemId++;
+        getItemById(rndItemId).then(resolve).catch(reject);
+      }
     });
+  });
+}
+
+function getItemById(id) {
+  return new Promise((resolve, rejct) => {
+    const params = {
+      Key: {
+        "id": { N: id.toString() }
+      },
+      TableName: 'maitv-assets'
+    };
+    console.log(params);
+    ddb.getItem(params, (err, data) => {
+      console.log(data);
+      if (err) {
+        console.log(err);
+        reject(err);
+      } else {
+        resolve({ id: data.Item['id'].N, uri: data.Item['uri'].S, title: data.Item['title'].S }); 
+      }
+    });
+  });
+}
+
+function getPlaylist(playlistId) {
+  return new Promise((resolve, reject) => {
+    const params = {
+      Key: {
+        "id": { S: playlistId }
+      },
+      TableName: 'maitv-playlists'
+    };
+    console.log(params);
+    ddb.getItem(params, (err, data) => {
+      console.log(data);
+      if (err) {
+        console.log(err);
+        reject(err);
+      } else {
+        let assets = [];
+        data.Item['assets'].L.forEach(v => {
+          assets.push(Number.parseInt(v.N));
+        });
+        resolve({ id: data.Item['id'].S, title: data.Item['title'].S, assets: assets });
+      }
+    });
+  });
 }
 
 exports.handler = (event, context, callback) => {
-    console.log('Received event:', JSON.stringify(event, null, 2));
+  console.log('Received event:', JSON.stringify(event, null, 2));
 
-    const done = (err, res) => callback(null, {
-        statusCode: err ? '400' : '200',
-        body: err ? err.message : JSON.stringify(res),
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
+  const done = (err, res) => callback(null, {
+    statusCode: err ? '400' : '200',
+    body: err ? err.message : JSON.stringify(res),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
-    switch (event.httpMethod) {
-        case 'GET':
-            if (event.path === '/nextVod/random') {
-                const rndIdx = Math.floor(Math.random() * FALLBACK_ASSETS.length);
-                getRandomItem().then(asset => {
-                    console.log(asset);
-                    done(null, asset);
-                }).catch(() => {
-                    done(null, FALLBACK_ASSETS[rndIdx]);
-                });
+  switch (event.httpMethod) {
+    case 'GET':
+      if (event.path === '/nextVod/random') {
+        const rndIdx = Math.floor(Math.random() * FALLBACK_ASSETS.length);
+        getRandomItem().then(asset => {
+          console.log(asset);
+          done(null, asset);
+        }).catch(() => {
+          console.log("Failed to access db, using fallback");
+          done(null, FALLBACK_ASSETS[rndIdx]);
+        });
+      } else if (event.path.match(/^\/nextVod\/.*/)) {
+        const m = event.path.match(/^\/nextVod\/(.*)/);
+        const playlistId = m[1];
+        let nextPos = event.queryStringParameters ? event.queryStringParameters['position'] || 0: 0;
+        nextPos++;
+        console.log(playlistId);
+        getPlaylist(playlistId).then(playlist => {
+          console.log(playlist)
+          if (nextPos > playlist.assets.length) {
+            nextPos = 0;
+          }
+          const id = playlist.assets[nextPos];
+          return getItemById(id);
+        }).then(asset => {
+          console.log(asset);
+          done(null, asset);
+        }).catch(err => {
+          console.log("Failed to access db, using fallback", err);
+          const playlist = FALLBACK_PLAYLISTS.find(p => p.id === playlistId);
+          if (!playlist) {
+            done(new Error(`Playlist ${playlist} does not exist among fallback playlists`));
+          } else {
+            if (nextPos > playlist.assets.length) {
+              nextPos = 0;
             }
-            break;
-        default:
-            done(new Error(`Unsupported method "${event.httpMethod}"`));
-    }
+            const asset = FALLBACK_ASSETS.find(v => v.id === playlist.assets[nextPos]);
+            done(null, asset);
+          }
+        });
+      } else {
+        done(new Error(`Unsupported path "${event.path}"`));
+      }
+      break;
+    default:
+      done(new Error(`Unsupported method "${event.httpMethod}"`));
+  }
 };

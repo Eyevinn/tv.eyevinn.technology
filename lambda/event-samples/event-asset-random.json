@@ -1,0 +1,55 @@
+{
+    "resource": "/{proxy+}",
+    "path": "/nextVod/random",
+    "httpMethod": "GET",
+    "headers": {
+        "Accept": "*/*",
+        "CloudFront-Forwarded-Proto": "https",
+        "CloudFront-Is-Desktop-Viewer": "true",
+        "CloudFront-Is-Mobile-Viewer": "false",
+        "CloudFront-Is-SmartTV-Viewer": "false",
+        "CloudFront-Is-Tablet-Viewer": "false",
+        "CloudFront-Viewer-Country": "SE",
+        "Host": "is70xv0ali.execute-api.eu-west-1.amazonaws.com",
+        "User-Agent": "curl/7.51.0",
+        "Via": "1.1 8bdae94273544c8186e20a3c31375f99.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Id": "Rz4sdJFfTKLsBQlp6HRM2bgOmT-PoEDhgBWzSR1cmFeRtYnj0r14-w==",
+        "X-Amzn-Trace-Id": "Root=1-5a91e154-910f524c0f101b60223dc44c",
+        "X-Forwarded-For": "83.233.179.84, 205.251.218.89",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https"
+    },
+    "queryStringParameters": null,
+    "pathParameters": {
+        "proxy": "nextVod/random"
+    },
+    "stageVariables": null,
+    "requestContext": {
+        "requestTime": "24/Feb/2018:22:04:04 +0000",
+        "path": "/prod/nextVod/random",
+        "accountId": "590877988961",
+        "protocol": "HTTP/1.1",
+        "resourceId": "hg754o",
+        "stage": "prod",
+        "requestTimeEpoch": 1519509844196,
+        "requestId": "a0770a84-19ae-11e8-9344-eb2308028663",
+        "identity": {
+            "cognitoIdentityPoolId": null,
+            "accountId": null,
+            "cognitoIdentityId": null,
+            "caller": null,
+            "sourceIp": "83.233.179.84",
+            "accessKey": null,
+            "cognitoAuthenticationType": null,
+            "cognitoAuthenticationProvider": null,
+            "userArn": null,
+            "userAgent": "curl/7.51.0",
+            "user": null
+        },
+        "resourcePath": "/{proxy+}",
+        "httpMethod": "GET",
+        "apiId": "is70xv0ali"
+    },
+    "body": null,
+    "isBase64Encoded": false
+}
