@@ -49,7 +49,9 @@ class AssetManager {
         }
         debug(nextPos);
         playlist.assets.forEach(assetId => { assets.push(this._lookupVodById(assetId)); });
-        res.send(200, assets[nextPos]);
+        let asset = assets[nextPos];
+        asset.playlistPosition = nextPos;
+        res.send(200, asset);
       }
     }
     next();
