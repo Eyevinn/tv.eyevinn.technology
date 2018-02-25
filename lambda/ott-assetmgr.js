@@ -95,6 +95,7 @@ exports.handler = (event, context, callback) => {
 
   switch (event.httpMethod) {
     case 'GET':
+      let nextPos;
       if (event.path === '/nextVod/random') {
         const rndIdx = Math.floor(Math.random() * FALLBACK_ASSETS.length);
         getRandomItem().then(asset => {
@@ -107,7 +108,7 @@ exports.handler = (event, context, callback) => {
       } else if (event.path.match(/^\/nextVod\/.*/)) {
         const m = event.path.match(/^\/nextVod\/(.*)/);
         const playlistId = m[1];
-        let nextPos = event.queryStringParameters ? event.queryStringParameters['position'] || 0: 0;
+        nextPos = event.queryStringParameters ? event.queryStringParameters['position'] || 0: 0;
         nextPos++;
         console.log(playlistId);
         getPlaylist(playlistId).then(playlist => {
@@ -119,7 +120,9 @@ exports.handler = (event, context, callback) => {
           return getItemById(id);
         }).then(asset => {
           console.log(asset);
-          done(null, asset);
+          let a = asset;
+          a.playlistPosition = nextPos;
+          done(null, a);
         }).catch(err => {
           console.log("Failed to access db, using fallback", err);
           const playlist = FALLBACK_PLAYLISTS.find(p => p.id === playlistId);
@@ -129,7 +132,8 @@ exports.handler = (event, context, callback) => {
             if (nextPos > playlist.assets.length) {
               nextPos = 0;
             }
-            const asset = FALLBACK_ASSETS.find(v => v.id === playlist.assets[nextPos]);
+            let asset = FALLBACK_ASSETS.find(v => v.id === playlist.assets[nextPos]);
+            asset.playlistPosition = nextPos;
             done(null, asset);
           }
         });
