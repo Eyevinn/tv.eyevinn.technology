@@ -8,9 +8,10 @@ const sessions = {}; // Should be a persistent store...
 const eventStreams = {};
 
 class StreamerServer {
-  constructor(assetMgrUri) {
+  constructor(assetMgrUri, adCopyMgrUri) {
     this.server = restify.createServer();
     this.assetMgrUri = assetMgrUri;
+    this.adCopyMgrUri = adCopyMgrUri;
     this.server.use(restify.plugins.queryParser());
 
     this.server.get('/live/master.m3u8', this._handleMasterManifest.bind(this));
