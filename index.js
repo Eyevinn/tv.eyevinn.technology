@@ -17,7 +17,7 @@ if (ROLE === 'single-server') {
   adCopyMgr.listen(process.env.ADCOPYMGR_PORT || 8002);
 
 } else if (ROLE === 'streamer-server') {
-  const streamer = new StreamerServer(ASSETMGR_URI);
+  const streamer = new StreamerServer(ASSETMGR_URI, ADCOPYMGR_URI);
   streamer.listen(process.env.PORT || 8000);
 } else if (ROLE === 'assetmgr-server') {
   const assetMgr = new AssetManager();
