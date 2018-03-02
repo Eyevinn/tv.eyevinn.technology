@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const request = require('request');
 const debug = require('debug')('streamer-session');
 const HLSVod = require('vod-to-live.js');
+const AdRequest = require('./ad_request.js');
 
 const SessionState = Object.freeze({
   VOD_INIT: 1,
@@ -11,8 +12,9 @@ const SessionState = Object.freeze({
 });
 
 class Session {
-  constructor(assetMgrUri, playlist) {
+  constructor(assetMgrUri, adCopyMgrUri, playlist) {
     this._assetMgrUri = assetMgrUri;
+    this._adCopyMgrUri = adCopyMgrUri;
     this._playlist = playlist;
     this._sessionId = crypto.randomBytes(20).toString('hex');
     this._state = {
@@ -87,6 +89,7 @@ class Session {
     return new Promise((resolve, reject) => {
       // State machine
       let newVod;
+      let splices = null;
 
       switch(this._state.state) {
         case SessionState.VOD_INIT:
@@ -129,9 +132,17 @@ class Session {
           debug(`[${this._sessionId}]: state=VOD_NEXT_INIT`);
           const length = this.currentVod.getLiveMediaSequencesCount();
           this._state.state = SessionState.VOD_NEXT_INITIATING;
-          this._getNextVod().then(uri => {
+          const adRequest = new AdRequest(this._adCopyMgrUri);
+          adRequest.resolve().then(_splices => {
+            debug(`[${this._sessionId}]: got splices=${_splices.length}`);
+            if (_splices.length > 0) {
+              splices = _splices;
+              debug(splices);
+            }
+            return this._getNextVod();
+          }).then(uri => {
             debug(`[${this._sessionId}]: got next VOD uri=${uri}`);
-            newVod = new HLSVod(uri);
+            newVod = new HLSVod(uri, splices);
             this.produceEvent({
               type: 'NEXT_VOD_SELECTED',
               data: {

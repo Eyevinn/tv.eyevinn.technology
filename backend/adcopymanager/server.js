@@ -41,7 +41,7 @@ class AdCopyManager {
     const adId = req.params.adId;
     const ad = ADS.find(ad => ad.adid == adId);
     this._getAd(ad).then(hlsAd => {
-      res.send(200, hlsAd.segments);
+      res.send(200, { adid: adId, segments: hlsAd.segments });
     }).catch(err => {
       next(err);
     });

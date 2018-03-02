@@ -36,11 +36,11 @@ class StreamerServer {
     if (req.query['session'] && sessions[req.query['session']]) {
       session = sessions[req.query['session']];
       if (session.currentPlaylist !== playlist) {
-        session = new Session(this.assetMgrUri, playlist);
+        session = new Session(this.assetMgrUri, this.adCopyMgrUri, playlist);
         sessions[session.sessionId] = session;
       }
     } else {
-      session = new Session(this.assetMgrUri, playlist);
+      session = new Session(this.assetMgrUri, this.adCopyMgrUri, playlist);
       sessions[session.sessionId] = session;
     }
     const eventStream = new EventStream(session);
