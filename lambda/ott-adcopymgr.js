@@ -19,7 +19,7 @@ function s3upload(fname) {
   const pass = new stream.PassThrough();
   const s3 = new AWS.S3();
   s3.upload({
-    Bucket: 'maitv-input',
+    Bucket: 'maitv-ad-input',
     Key: fname,
     Body: pass,
   }, (err, data) => {
