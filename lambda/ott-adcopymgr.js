@@ -1,5 +1,8 @@
 'use strict';
 console.log('Loading function');
+const request = require('request');
+const stream = require('stream');
+const AWS = require('aws-sdk');
 
 const ADS = [
   { 
@@ -11,6 +14,22 @@ const ADS = [
     },
   }
 ]
+
+function s3upload(fname) {
+  const pass = new stream.PassThrough();
+  const s3 = new AWS.S3();
+  s3.upload({
+    Bucket: 'maitv-input',
+    Key: fname,
+    Body: pass,
+  }, (err, data) => {
+    console.log(err, data);
+    if (err) {
+      pass.emit('error', err);
+    }
+  });
+  return pass;
+}
 
 exports.handler = (event, context, callback) => {
   console.log('Received event:', JSON.stringify(event, null, 2));
@@ -30,9 +49,28 @@ exports.handler = (event, context, callback) => {
         const adId = m[1];
         console.log(adId);
         const asset = ADS.find(a => a.adid == adId);
-        done(null, asset);
+        if (!asset) {
+          done(new Error(`Ad with id ${adId} not found`));
+        } else {
+          done(null, asset);
+        }
       } else {
         done(new Error(`Unsupported path "${event.path}"`));
+      }
+      break;
+    case 'POST':
+      if (event.path === '/ad') {
+        const data = JSON.parse(event.body);
+        const fname = 'ad-2-filename.mp4';
+
+        request.get(data.uri)
+        .on('error', err => {
+          done(new Error(err));
+        })
+        .pipe(s3upload(fname))
+        .on('end', () => {
+          done(null, { adid: 2, filename: fname })
+        });
       }
       break;
     default:
