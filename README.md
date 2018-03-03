@@ -33,6 +33,12 @@ variable `ASSETMGR_URI`.
 $ ASSETMGR_URI=<URI to API> npm run debug-server
 ```
 
+And to configure endpoint for adcopymanager API the environment variable `ADCOPYMGR_URI` is defined
+
+```
+$ ADCOPYMGR_URI=<URI to API> npm run debug-server
+```
+
 Default port for the Channel Engine is 8000 so to test the stream point your browser or HLS video player to: http://localhost:8000/live/master.m3u8
 
 To run the frontend locally start a simple HTTP server (requires python installed) with this command:
