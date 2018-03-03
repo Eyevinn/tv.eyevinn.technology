@@ -50,3 +50,17 @@ $ npm run frontend
 and then point your browser to http://localhost:3000/?dev
 
 The query parameter `dev` instructs the frontend to use the Channel Engine running on localhost.
+
+## Lambda APIs
+
+Upload Ad Creative and transcode ad to HLS
+
+```
+$ curl -H "X-API-KEY: <KEY>" -X POST -d '{ "adid": 2, "uri": "https://example.com/ad.mp4" }' -H "Content-Type: application/json"  https://adcopymgr.api.eyevinn.technology/ad
+```
+
+Get HLS and segments for ad with adId 1
+
+```
+$ curl  https://adcopymgr.api.eyevinn.technology/ad/1
+```
