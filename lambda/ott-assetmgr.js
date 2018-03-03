@@ -104,7 +104,7 @@ function parseFilename(uri) {
   const url = URL.parse(uri);
   const basename = url.pathname.split('/').reverse()[0].split('.')[0];
   const filename = url.pathname.split('/').reverse()[0];
-  const clean = filename.replace(/[^0-9a-zA-Z]/g, '_');
+  const clean = filename.replace(/[^0-9a-zA-Z\.\-]/g, '_');
   return {
     basename: basename,
     original: filename,

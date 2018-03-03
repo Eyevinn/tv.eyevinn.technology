@@ -4,6 +4,8 @@ const request = require('request');
 const stream = require('stream');
 const AWS = require('aws-sdk');
 const URL = require('url');
+const ddb = new AWS.DynamoDB({apiVersion: '2012-10-08'});
+const m3u8 = require('m3u8');
 
 const API_KEY = process.env.API_KEY;
 
@@ -51,12 +53,113 @@ function parseFilename(uri) {
   const url = URL.parse(uri);
   const basename = url.pathname.split('/').reverse()[0].split('.')[0];
   const filename = url.pathname.split('/').reverse()[0];
-  const clean = filename.replace(/[^0-9a-zA-Z]/g, '_');
+  const clean = filename.replace(/[^0-9a-zA-Z\.\-]/g, '_');
   return {
     basename: basename,
     original: filename,
     clean: clean,
   };
+}
+
+function getItemByAdId(id) {
+  return new Promise((resolve, rejct) => {
+    const params = {
+      Key: {
+        "adid": { N: id.toString() }
+      },
+      TableName: 'maitv-ads'
+    };
+    console.log(params);
+    ddb.getItem(params, (err, data) => {
+      console.log(data);
+      if (err) {
+        console.log(err);
+        reject(err);
+      } else {
+        resolve({ id: data.Item['adid'].N, uri: data.Item['uri'].S }); 
+      }
+    });
+  });
+}
+
+function getSegmentsForAd(ad) {
+  return new Promise((resolve, reject) => {
+    const parser = m3u8.createStream();
+
+    parser.on('m3u', m3u => {
+      let mediaManifestPromises = [];
+      let baseUrl;
+      const m = ad.uri.match('^(.*)/.*?$');
+      if (m) {
+        baseUrl = m[1] + '/';
+      }
+      for (let i = 0; i < m3u.items.StreamItem.length; i++) {
+        const streamItem = m3u.items.StreamItem[i];
+        let mediaManifestUrl = URL.resolve(baseUrl, streamItem.properties.uri);
+        if (streamItem.attributes.attributes['resolution']) {
+          mediaManifestPromises.push(loadMediaManifest(ad, mediaManifestUrl, streamItem.attributes.attributes['bandwidth']));
+        }
+      }
+      Promise.all(mediaManifestPromises)
+      .then(resolve)
+      .catch(reject);
+    });
+
+    parser.on('error', err => {
+      reject(err);
+    });
+
+    request.get(ad.uri)
+    .on('error', err => {
+      reject(err);
+    })
+    .pipe(parser);
+  });
+}
+
+function loadMediaManifest(ad, mediaManifestUri, bandwidth) {
+  return new Promise((resolve, reject) => {
+    const parser = m3u8.createStream();
+    let bw = bandwidth;
+
+    if (!ad.segments[bw]) {
+      ad.segments[bw] = [];
+    }
+
+    parser.on('m3u', m3u => {
+      for (let i = 0; i < m3u.items.PlaylistItem.length; i++) {
+        const playlistItem = m3u.items.PlaylistItem[i];
+        let segmentUri;
+        let baseUrl;
+
+        const m = mediaManifestUri.match('^(.*)/.*?$');
+        if (m) {
+          baseUrl = m[1] + '/';
+        }
+
+        if (playlistItem.properties.uri.match('^http')) {
+          segmentUri = playlistItem.properties.uri;
+        } else {
+          segmentUri = URL.resolve(baseUrl, playlistItem.properties.uri);
+        }
+        ad.segments[bw].push([
+          playlistItem.properties.duration,
+          segmentUri,
+        ]);
+      }
+      resolve();
+    });
+
+    parser.on('error', err => {
+      reject(err);
+    });
+
+    request.get(mediaManifestUri)
+    .on('error', err => {
+      reject(err);
+    })
+    .pipe(parser);      
+  });
 }
 
 exports.handler = (event, context, callback) => {
@@ -76,12 +179,23 @@ exports.handler = (event, context, callback) => {
         const m = event.path.match(/^\/ad\/(.*)/);
         const adId = m[1];
         console.log(adId);
-        const asset = ADS.find(a => a.adid == adId);
-        if (!asset) {
-          done(new Error(`Ad with id ${adId} not found`));
-        } else {
+        let asset;
+        getItemByAdId(adId).then(ad => {
+          asset.adid = ad.adid;
+          asset.uri = ad.uri;
+          return getSegmentsForAd(asset);
+        }).then(() => {
           done(null, asset);
-        }
+        }).catch(err => {
+          console.log(err);
+          console.log('Using fallback');
+          asset = ADS.find(a => a.adid == adId);
+          if (!asset) {
+            done(new Error(`Ad with id ${adId} not found`));
+          } else {
+            done(null, asset);
+          }
+        });
       } else {
         done(new Error(`Unsupported path "${event.path}"`));
       }
