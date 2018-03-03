@@ -4,6 +4,8 @@ const request = require('request');
 const stream = require('stream');
 const AWS = require('aws-sdk');
 
+const API_KEY = process.env.API_KEY;
+
 const ADS = [
   { 
     adid: 1, uri: 'https://maitv-vod.lab.eyevinn.technology/Bingolotto_hornan.mov/master.m3u8',
@@ -62,15 +64,30 @@ exports.handler = (event, context, callback) => {
       if (event.path === '/ad') {
         const data = JSON.parse(event.body);
         const fname = 'ad-2-filename.mp4';
+        let authenticated = false;
+        if (API_KEY) {
+          if (event.headers['X-API-KEY'] === API_KEY) {
+            authenticated = true;
+          } else {
+            console.log('Invalid API-KEY provided!');
+          }
+        } else {
+          authenticated = true;
+        }
 
-        request.get(data.uri)
-        .on('error', err => {
-          done(new Error(err));
-        })
-        .pipe(s3upload(fname))
-        .on('end', () => {
-          done(null, { adid: 2, filename: fname })
-        });
+        console.log(authenticated);
+        if (authenticated) {
+          request.get(data.uri)
+          .on('error', err => {
+            done(new Error(err));
+          })
+          .pipe(s3upload(fname))
+          .on('end', () => {
+            done(null, { adid: 2, filename: fname })
+          });
+        } else {
+          done(new Error('Invalid API-KEY provided. All attempts are logged'));
+        }
       }
       break;
     default:
