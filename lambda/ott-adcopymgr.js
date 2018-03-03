@@ -76,7 +76,7 @@ function getItemByAdId(id) {
         console.log(err);
         reject(err);
       } else {
-        resolve({ id: data.Item['adid'].N, uri: data.Item['uri'].S }); 
+        resolve({ id: data.Item['adid'].N, uri: data.Item['uri'].S, segments: {} }); 
       }
     });
   });
@@ -181,8 +181,7 @@ exports.handler = (event, context, callback) => {
         console.log(adId);
         let asset;
         getItemByAdId(adId).then(ad => {
-          asset.adid = ad.adid;
-          asset.uri = ad.uri;
+          asset = ad;
           return getSegmentsForAd(asset);
         }).then(() => {
           done(null, asset);
