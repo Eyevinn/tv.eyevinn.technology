@@ -1,8 +1,13 @@
 'use strict';
 console.log('Loading function');
 
+const API_KEY = process.env.API_KEY;
+
 const AWS = require('aws-sdk');
 const ddb = new AWS.DynamoDB({apiVersion: '2012-10-08'});
+const URL = require('url');
+const request = require('request');
+const stream = require('stream');
 
 const FALLBACK_ASSETS = [
   { id: 1, title: "Vinngroup Promotion", uri: "https://maitv-vod.lab.eyevinn.technology/VINN.mp4/master.m3u8" },
@@ -82,6 +87,47 @@ function getPlaylist(playlistId) {
   });
 }
 
+function authenticate(event) {
+  if (API_KEY) {
+    if (event.headers['X-API-KEY'] === API_KEY) {
+      return true;
+    } else {
+      console.log('Invalid API-KEY provided!');
+      return false;
+    }
+  } else {
+    return true;
+  }  
+}
+
+function parseFilename(uri) {
+  const url = URL.parse(uri);
+  const basename = url.pathname.split('/').reverse()[0].split('.')[0];
+  const filename = url.pathname.split('/').reverse()[0];
+  const clean = filename.replace(/[^0-9a-zA-Z]/g, '_');
+  return {
+    basename: basename,
+    original: filename,
+    clean: clean,
+  };
+}
+
+function s3upload(fname) {
+  const pass = new stream.PassThrough();
+  const s3 = new AWS.S3();
+  s3.upload({
+    Bucket: 'maitv-input',
+    Key: fname,
+    Body: pass,
+  }, (err, data) => {
+    console.log(err, data);
+    if (err) {
+      pass.emit('error', err);
+    }
+  });
+  return pass;
+}
+
 exports.handler = (event, context, callback) => {
   console.log('Received event:', JSON.stringify(event, null, 2));
 
@@ -139,6 +185,30 @@ exports.handler = (event, context, callback) => {
         });
       } else {
         done(new Error(`Unsupported path "${event.path}"`));
+      }
+      break;
+    case 'POST':
+      if (event.path === '/vod') {
+        const data = JSON.parse(event.body);
+
+        if (authenticate(event)) {
+          const fname = parseFilename(data.uri);
+          const clean = fname.clean;
+          const hlsUri = `https://maitv-vod.lab.eyevinn.technology/${clean}/master.m3u8`;
+
+          request.get(data.uri)
+          .on('error', err => {
+            done(new Error(err));
+          })
+          .pipe(s3upload(clean))
+          .on('end', () => {
+            done(null, { filename: clean, uri: hlsUri });
+          });          
+        } else {
+          done(new Error('Invalid API-KEY provided. All attempts are logged'));
+        }
+      } else {
+        done(new Error(`Unsupported path "${event.path}"`));        
       }
       break;
     default:

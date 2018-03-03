@@ -3,6 +3,7 @@ console.log('Loading function');
 const request = require('request');
 const stream = require('stream');
 const AWS = require('aws-sdk');
+const URL = require('url');
 
 const API_KEY = process.env.API_KEY;
 
@@ -31,6 +32,31 @@ function s3upload(fname) {
     }
   });
   return pass;
+}
+
+function authenticate(event) {
+  if (API_KEY) {
+    if (event.headers['X-API-KEY'] === API_KEY) {
+      return true;
+    } else {
+      console.log('Invalid API-KEY provided!');
+      return false;
+    }
+  } else {
+    return true;
+  }  
+}
+
+function parseFilename(uri) {
+  const url = URL.parse(uri);
+  const basename = url.pathname.split('/').reverse()[0].split('.')[0];
+  const filename = url.pathname.split('/').reverse()[0];
+  const clean = filename.replace(/[^0-9a-zA-Z]/g, '_');
+  return {
+    basename: basename,
+    original: filename,
+    clean: clean,
+  };
 }
 
 exports.handler = (event, context, callback) => {
@@ -63,30 +89,26 @@ exports.handler = (event, context, callback) => {
     case 'POST':
       if (event.path === '/ad') {
         const data = JSON.parse(event.body);
-        const fname = 'ad-2-filename.mp4';
-        let authenticated = false;
-        if (API_KEY) {
-          if (event.headers['X-API-KEY'] === API_KEY) {
-            authenticated = true;
-          } else {
-            console.log('Invalid API-KEY provided!');
-          }
-        } else {
-          authenticated = true;
-        }
+        const fname = parseFilename(data.uri);
+        const adid = data.adid;
+        const clean = fname.clean;
+        const hlsUri = `https://maitv-vod.lab.eyevinn.technology/ads/${clean}/master.m3u8`;
 
-        console.log(authenticated);
-        if (authenticated) {
-          request.get(data.uri)
-          .on('error', err => {
-            done(new Error(err));
-          })
-          .pipe(s3upload(fname))
-          .on('end', () => {
-            done(null, { adid: 2, filename: fname })
-          });
+        if (!adid) {
+          done(new Error('Missing adid in request'));
         } else {
-          done(new Error('Invalid API-KEY provided. All attempts are logged'));
+          if (authenticate(event)) {
+            request.get(data.uri)
+            .on('error', err => {
+              done(new Error(err));
+            })
+            .pipe(s3upload(clean))
+            .on('end', () => {
+              done(null, { adid: adid, filename: clean, uri: hlsUri })
+            });
+          } else {
+            done(new Error('Invalid API-KEY provided. All attempts are logged'));
+          }
         }
       }
       break;
