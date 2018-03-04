@@ -66,49 +66,83 @@ const MOCK_VMAP = `<vmap:VMAP xmlns:vmap="http://www.iab.net/vmap-1.0" version="
 </vmap:VMAP>`;
 
 const request = require('request');
+const debug = require('debug')('streamer-adrequest');
+
+const DEFAULT_BREAK_PATTERN = [
+  { position: 0.1 },
+  { position: 10 * 60.0 }
+]
 
 class AdRequest {
   constructor(adCopyMgrUri) {
     this._adCopyMgrUri = adCopyMgrUri;
+    this._splices = [];
   }
 
   resolve() {
     return new Promise((resolve, reject) => {
-      this._requestSplices().then(splices => {
-        let adPromises = [];
+      this._requestBreaks().then(breaks => {
+        let adBreakPromises = [];
 
-        for(let i = 0; i < splices.length; i++) {
-          adPromises.push(this._getAdById(splices[i]));
+        for(let i = 0; i < breaks.length; i++) {
+          adBreakPromises.push(this._fillBreak(breaks[i]));
         }
-        Promise.all(adPromises).then(() => {
-          resolve(splices);
+        Promise.all(adBreakPromises).then(() => {
+          resolve(this.splices);
         }).catch(reject);
       }).catch(reject);
     });
   }
 
-  _requestSplices() {
+  get splices() {
+    return this._splices.sort((a, b) => a.position - b.position);
+  }
+
+  _requestBreaks() {
     return new Promise((resolve, reject) => {
-      let splices = [];
-      // Here should some actual ad request take place
-      splices.push({
-        position: 1.0,
-        adId: 1,
-      });
-      splices.push({
-        position: 5 * 60.0,
-        adId: 1,
-      });
-      resolve(splices);
+      let breaks = DEFAULT_BREAK_PATTERN;
+      resolve(breaks);
     });
   }
 
-  _getAdById(splice) {
+  _requestAds() {
     return new Promise((resolve, reject) => {
-      request({ url: this._adCopyMgrUri + '/ad/' + splice.adId }, (err, resp, body) => {
+      let ads = [ { adid: 1 }, { adid: 2 } ];
+      let adPromises = [];
+      for(let i = 0; i < ads.length; i++) {
+        adPromises.push(this._getAdById(ads[i]));
+      }
+      Promise.all(adPromises).then(() => {
+        debug(`Got ads:`);
+        debug(ads);
+        resolve(ads);
+      })
+      .catch(reject);
+    });
+  }
+
+  _fillBreak(adbreak) {
+    return new Promise((resolve, reject) => {
+      this._requestAds().then(ads => {
+        let p = 0.0;
+        for(let i = 0; i < ads.length; i++) {
+          this._splices.push({ adid: ads[i].adid, position: adbreak.position + p, segments: ads[i].segments });
+          p += ads[i].duration;
+        }
+        resolve();
+      });
+    });
+  }
+
+  _getAdById(ad) {
+    return new Promise((resolve, reject) => {
+      request({ url: this._adCopyMgrUri + '/ad/' + ad.adid }, (err, resp, body) => {
         if (resp.statusCode == 200) {
           const data = JSON.parse(body);
-          splice.segments = data.segments;
+          ad.adid = data.id;
+          ad.uri = data.uri;
+          ad.segments = data.segments;
+          ad.duration = (1 * data.duration);
           resolve();
         } else { 
           reject(err);
