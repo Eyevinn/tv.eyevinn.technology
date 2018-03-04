@@ -76,7 +76,7 @@ function getItemByAdId(id) {
         console.log(err);
         reject(err);
       } else {
-        resolve({ id: data.Item['adid'].N, uri: data.Item['uri'].S, segments: {} }); 
+        resolve({ id: data.Item['adid'].N, uri: data.Item['uri'].S, duration: data.Item['duration'].N, segments: {} }); 
       }
     });
   });
