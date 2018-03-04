@@ -69,7 +69,7 @@ const request = require('request');
 const debug = require('debug')('streamer-adrequest');
 
 const DEFAULT_BREAK_PATTERN = [
-  { position: 0.1 },
+  { position: 0.0 },
   { position: 10 * 60.0 }
 ]
 
