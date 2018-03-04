@@ -107,7 +107,7 @@ class AdRequest {
 
   _requestAds() {
     return new Promise((resolve, reject) => {
-      let ads = [ { adid: 1 }, { adid: 2 } ];
+      let ads = [ { adid: 3 }, { adid: 1 } ];
       let adPromises = [];
       for(let i = 0; i < ads.length; i++) {
         adPromises.push(this._getAdById(ads[i]));
