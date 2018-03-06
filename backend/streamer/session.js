@@ -23,6 +23,7 @@ class Session {
       state: SessionState.VOD_INIT,
       lastM3u8: null,
       playlistPosition: 0,
+      tsLastRequest: null,
     };
     this.currentVod;
     this.currentMetadata = {};
@@ -49,7 +50,12 @@ class Session {
           const m3u8 = this.currentVod.getLiveMediaSequences(this._state.mediaSeq, bw, this._state.vodMediaSeq);
           debug(`[${this._sessionId}]: bandwidth=${bw} vodMediaSeq=${this._state.vodMediaSeq}`);
           this._state.lastM3u8 = m3u8;
-          this._state.vodMediaSeq++;
+          if (this._state.tsLastRequest != null && (Date.now() - this._state.tsLastRequest) < 3000) {
+            debug(`Last request less than 3 seconds ago, not increasing mediaseq counter`)
+          } else {
+            this._state.vodMediaSeq++;
+          }
+          this._state.tsLastRequest = Date.now();
           resolve(m3u8);
         }
       }).catch(reject);
@@ -72,6 +78,7 @@ class Session {
             title: this.currentMetadata.title,
           }
         });
+        this._state.tsLastRequest = Date.now();
         resolve(m3u8);
       }).catch(reject);
     });
