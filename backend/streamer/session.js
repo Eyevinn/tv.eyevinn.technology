@@ -67,7 +67,7 @@ class Session {
       this._tick().then(() => {
         let m3u8 = "#EXTM3U\n";
         m3u8 += `#EXT-X-SESSION-DATA:DATA-ID="eyevinn.tv.session.id",VALUE="${this._sessionId}"\n`;
-        m3u8 += `#EXT-X-SESSION-DATA:DATA-ID="eyevinn.tv.eventstream",URI="/eventstream/${this._sessionId}"\n`;
+        m3u8 += `#EXT-X-SESSION-DATA:DATA-ID="eyevinn.tv.eventstream",VALUE="/eventstream/${this._sessionId}"\n`;
         this.currentVod.getUsageProfiles().forEach(profile => {
           m3u8 += '#EXT-X-STREAM-INF:BANDWIDTH=' + profile.bw + ',RESOLUTION=' + profile.resolution + ',CODECS="' + profile.codecs + '"\n';
           m3u8 += "master" + profile.bw + ".m3u8;session=" + this._sessionId + "\n";
@@ -103,7 +103,7 @@ class Session {
           debug(`[${this._sessionId}]: state=VOD_INIT`);
           this._getNextVod().then(uri => {
             debug(`[${this._sessionId}]: got first VOD uri=${uri}`);
-            newVod = new HLSVod(uri);
+            newVod = new HLSVod(uri, [], Date.now());
             this.currentVod = newVod;
             return this.currentVod.load();
           }).then(() => {
