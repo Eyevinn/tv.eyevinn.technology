@@ -103,7 +103,8 @@ class Session {
           debug(`[${this._sessionId}]: state=VOD_INIT`);
           this._getNextVod().then(uri => {
             debug(`[${this._sessionId}]: got first VOD uri=${uri}`);
-            newVod = new HLSVod(uri, [], Date.now());
+            //newVod = new HLSVod(uri, [], Date.now());
+            newVod = new HLSVod(uri, []);
             this.currentVod = newVod;
             return this.currentVod.load();
           }).then(() => {
