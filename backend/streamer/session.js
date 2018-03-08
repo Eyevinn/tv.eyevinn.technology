@@ -19,6 +19,7 @@ class Session {
     this._sessionId = crypto.randomBytes(20).toString('hex');
     this._state = {
       mediaSeq: 0,
+      discSeq: 0,
       vodMediaSeq: 0,
       state: SessionState.VOD_INIT,
       lastM3u8: null,
@@ -47,7 +48,7 @@ class Session {
           debug(`[${this._sessionId}]: serving m3u8 from cache`);
           resolve(this._state.lastM3u8);
         } else {
-          const m3u8 = this.currentVod.getLiveMediaSequences(this._state.mediaSeq, bw, this._state.vodMediaSeq);
+          const m3u8 = this.currentVod.getLiveMediaSequences(this._state.mediaSeq, bw, this._state.vodMediaSeq, this._state.discSeq);
           debug(`[${this._sessionId}]: bandwidth=${bw} vodMediaSeq=${this._state.vodMediaSeq}`);
           this._state.lastM3u8 = m3u8;
           if (this._state.tsLastRequest != null && (Date.now() - this._state.tsLastRequest) < 3000) {
@@ -139,6 +140,7 @@ class Session {
         case SessionState.VOD_NEXT_INIT:
           debug(`[${this._sessionId}]: state=VOD_NEXT_INIT`);
           const length = this.currentVod.getLiveMediaSequencesCount();
+          const lastDiscontinuity = this.currentVod.getLastDiscontinuity();
           this._state.state = SessionState.VOD_NEXT_INITIATING;
           const adRequest = new AdRequest(this._adCopyMgrUri);
           adRequest.resolve().then(_splices => {
@@ -166,6 +168,7 @@ class Session {
             debug(`[${this._sessionId}]: msequences=${this.currentVod.getLiveMediaSequencesCount()}`);
             this._state.vodMediaSeq = 0;
             this._state.mediaSeq += length;
+            this._state.discSeq += lastDiscontinuity;
             this.produceEvent({
               type: 'NOW_PLAYING',
               data: {
