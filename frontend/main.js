@@ -7,7 +7,7 @@ var mainPlayer = {
   videoElement: null
 };
 
-function initiatePlayer(hlsUri, videoElementId, playlist, noresume) {
+function initiatePlayer(hlsUri, videoElementId, playlist, noresume, id) {
   return new Promise(function(resolve, reject) {
     var videoElement = document.getElementById(videoElementId);
     videoElement.addEventListener('playing', function(event) {
@@ -19,11 +19,14 @@ function initiatePlayer(hlsUri, videoElementId, playlist, noresume) {
 
     var sessionId = getSessionIdFromCookie();
     var queryParams = {};
-    if (sessionId && !noresume) {
+    if (sessionId && !noresume && !id) {
       queryParams['session'] = sessionId;
     }
     if (playlist) {
       queryParams['playlist'] = playlist;
+    }
+    if (id) {
+      queryParams['startWithId'] = id;
     }
 
     if (Object.keys(queryParams).length > 0) {
@@ -121,6 +124,18 @@ function initiateControllers(videoElement, canAutoPlay) {
       }, 5000);
     });
 
+    var startoverButton = document.getElementById('startoverbutton');
+    startoverButton.addEventListener('click', function(event) {
+      var id = event.target.dataset.id;
+      if (id) {
+        var queryParams = parseQueryParams(location.search);
+        queryParams['id'] = id;
+        document.location = '/' + '?' + Object.keys(queryParams).map(function(key) {
+          return [key, queryParams[key]].map(encodeURIComponent).join("=");
+        }).join("&");
+      }
+    });
+
     resolve();
   });
 }
@@ -174,6 +189,13 @@ function updateMetadata(title, metadata) {
   var metadataElement = document.getElementById('metadata');
   metadataElement.innerHTML = "<p>" + title + "</p>";
   metadataElement.innerHTML += "<h2>" + metadata.title + "</h2>";
+  var startoverButton = document.getElementById('startoverbutton');
+  if (metadata.id) {
+    startoverButton.dataset.id = metadata.id;
+    startoverButton.className = 'startoverbtn startoverbtn-visible';
+  } else {
+    startoverButton.className = 'startoverbtn startoverbtn-hidden';
+  }
 }
 
 function initiateTicker() {

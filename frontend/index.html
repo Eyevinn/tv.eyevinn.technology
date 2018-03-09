@@ -37,6 +37,7 @@
       <button id="playbutton" class="playbtn playbtn-visible"></button>
       <video id="mainview"></video>
       <div id="overlay" class="overlay overlay-hidden">
+        <button id="startoverbutton" class="startoverbtn startoverbtn-hidden"></button>
         <div class="logo"></div>
         <div class="sitedesc">
           <p>Demonstration of a Server-less OTT-Only TV channel Playout</p>
@@ -68,7 +69,7 @@
         eventStreamUri = 'https://ott-channel-engine.herokuapp.com/eventstream';
       }
       document.addEventListener("DOMContentLoaded", function(event) {
-        initiatePlayer(uri, "mainview", params['channel'], params['noresume'])
+        initiatePlayer(uri, "mainview", params['channel'], params['noresume'], params['id'])
         .then(function(videoElement) {
           videoElement.muted = true;
           var playPromise = videoElement.play();
