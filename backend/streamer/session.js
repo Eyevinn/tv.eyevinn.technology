@@ -80,6 +80,7 @@ class Session {
         this.produceEvent({
           type: 'NOW_PLAYING',
           data: {
+            id: this.currentMetadata.id,
             title: this.currentMetadata.title,
           }
         });
