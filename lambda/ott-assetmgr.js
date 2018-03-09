@@ -183,6 +183,12 @@ exports.handler = (event, context, callback) => {
             done(null, asset);
           }
         });
+      } else if (event.path.match(/^\/vod\/.*/)) {
+        const m = event.path.match(/^\/vod\/(.*)/);
+        const id = m[1];
+        getItemById(id).then(asset => {
+          done(null, asset);
+        });
       } else {
         done(new Error(`Unsupported path "${event.path}"`));
       }

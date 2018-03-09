@@ -12,7 +12,7 @@ const SessionState = Object.freeze({
 });
 
 class Session {
-  constructor(assetMgrUri, adCopyMgrUri, playlist) {
+  constructor(assetMgrUri, adCopyMgrUri, playlist, startWithId) {
     this._assetMgrUri = assetMgrUri;
     this._adCopyMgrUri = adCopyMgrUri;
     this._playlist = playlist;
@@ -29,6 +29,10 @@ class Session {
     this.currentVod;
     this.currentMetadata = {};
     this._events = [];
+    if (startWithId) {
+      this._state.state = SessionState.VOD_INIT_BY_ID;
+      this._state.assetId = startWithId;
+    }
   }
 
   get sessionId() {
@@ -101,8 +105,16 @@ class Session {
 
       switch(this._state.state) {
         case SessionState.VOD_INIT:
-          debug(`[${this._sessionId}]: state=VOD_INIT`);
-          this._getNextVod().then(uri => {
+        case SessionState.VOD_INIT_BY_ID:
+          let nextVodPromise;
+          if (this._state.state === SessionState.VOD_INIT) {
+            debug(`[${this._sessionId}]: state=VOD_INIT`);
+            nextVodPromise = this._getNextVod();
+          } else if (this._state.state === SessionState.VOD_INIT_BY_ID) {
+            debug(`[${this._sessionId}]: state=VOD_INIT_BY_ID ${this._state.assetId}`);
+            nextVodPromise = this._getNextVodById(this._state.assetId);
+          }
+          nextVodPromise.then(uri => {
             debug(`[${this._sessionId}]: got first VOD uri=${uri}`);
             //newVod = new HLSVod(uri, [], Date.now());
             newVod = new HLSVod(uri, []);
@@ -111,18 +123,18 @@ class Session {
           }).then(() => {
             debug(`[${this._sessionId}]: first VOD loaded`);
             debug(newVod);
-            this._state.state = SessionState.VOD_PLAYING;
             this._state.vodMediaSeq = this.currentVod.getLiveMediaSequencesCount() - 5;
-            if (this._state.vodMediaSeq < 0 || this._playlist !== 'random') {
+            if (this._state.vodMediaSeq < 0 || this._playlist !== 'random' || this._state.state === SessionState.VOD_INIT_BY_ID) {
               this._state.vodMediaSeq = 0;
             }
             this.produceEvent({
               type: 'NOW_PLAYING',
               data: {
+                id: this.currentMetadata.id,
                 title: this.currentMetadata.title,
               }
             });
-            //this._state.vodMediaSeq = 0;
+            this._state.state = SessionState.VOD_PLAYING;
             resolve();
           }).catch(reject);
           break;
@@ -156,6 +168,7 @@ class Session {
             this.produceEvent({
               type: 'NEXT_VOD_SELECTED',
               data: {
+                id: this.currentMetadata.id,
                 uri: uri,
                 title: this.currentMetadata.title || '',
               }
@@ -172,6 +185,7 @@ class Session {
             this.produceEvent({
               type: 'NOW_PLAYING',
               data: {
+                id: this.currentMetadata.id,
                 title: this.currentMetadata.title,
               }
             });            
@@ -197,6 +211,26 @@ class Session {
         debug(`[${this._sessionId}]: nextVod=${data.uri} new position=${this._state.playlistPosition}`);
         debug(data);
         this.currentMetadata = {
+          id: data.id,
+          title: data.title || '',
+        };
+        resolve(data.uri);
+      }).on('error', err => {
+        reject(err);
+      });
+    });
+  }
+
+  _getNextVodById(id) {
+    return new Promise((resolve, reject) => {
+      const assetUri = this._assetMgrUri + '/vod/' + id;
+      request.get(assetUri, (err, resp, body) => {
+        const data = JSON.parse(body);
+        this._state.playlistPosition = 0;
+        debug(`[${this._sessionId}]: nextVod=${data.uri} new position=${this._state.playlistPosition}`)
+        debug(data);
+        this.currentMetadata = {
+          id: data.id,
           title: data.title || '',
         };
         resolve(data.uri);

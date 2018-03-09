@@ -40,7 +40,12 @@ class StreamerServer {
         sessions[session.sessionId] = session;
       }
     } else {
-      session = new Session(this.assetMgrUri, this.adCopyMgrUri, playlist);
+      let startWithId;
+      if (req.query['startWithId']) {
+        startWithId = req.query['startWithId'];
+        debug(`New session to start with assetId=${startWithId}`);
+      }
+      session = new Session(this.assetMgrUri, this.adCopyMgrUri, playlist, startWithId);
       sessions[session.sessionId] = session;
     }
     const eventStream = new EventStream(session);
