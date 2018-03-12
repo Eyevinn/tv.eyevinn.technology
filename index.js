@@ -1,4 +1,4 @@
-const StreamerServer = require('./backend/streamer/server.js');
+const StreamerServer = require('eyevinn-channel-engine');
 const AssetManager = require('./backend/assetmanager/server.js');
 const AdCopyManager = require('./backend/adcopymanager/server.js');
 
