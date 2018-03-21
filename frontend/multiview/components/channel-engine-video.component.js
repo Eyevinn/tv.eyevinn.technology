@@ -45,7 +45,12 @@ angular.module('channelEngineMultiview')
 
       self._initiatePlayer = function(hlsUri) {
         return new Promise(function(resolve, reject) {
-          if (self._canUseHls()) {
+          if (/Safari/.test(navigator.userAgent)) {
+            self.videoElement.src = hlsUri;
+            self.videoElement.addEventListener('canplay', function() {
+            });
+            resolve(self.videoElement);
+          } else if (self._canUseHls()) {
             var hls = self.hls;
             hls.attachMedia(self.videoElement);
             hls.on(Hls.Events.MEDIA_ATTACHED, function () {
