@@ -1,0 +1,56 @@
+/* app css stylesheet */
+
+body {
+  background-color: #111;
+}
+
+.menu {
+  display: flex;
+  margin-bottom: 2em;
+  padding: 0 0 0.5em;
+}
+
+.logo {
+  height: 80px;
+  margin-left: 1em;
+}
+
+.page-title {
+  font-size: 2.5em;
+  color: #999;
+  margin-left: 2em;
+}
+
+.videos {
+	display: flex;
+	flex-flow: row wrap;
+  width: 2000px;
+}
+
+.video-container {
+	border: 1px solid grey;
+  position:relative;
+  background-color: #000;
+}
+
+.video-container:hover {
+  z-index: 100;
+}
+
+.video-container.selected {
+  border: 4px solid red;
+}
+
+.video-container .audio-icon {
+  display: none;
+}
+
+.video-container:hover .audio-icon {
+  display: block;
+  font-size: 4em;
+  color: #999;
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  cursor: pointer;
+}

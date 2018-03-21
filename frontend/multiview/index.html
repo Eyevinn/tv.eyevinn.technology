@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="channelEngineMultiview" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Channel Engine Multiview</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body>
+  <ul class="menu">
+    <img src="eyevinnlogo.png" class="logo"></img>
+    <div class="page-title">Channel Engine Multiview</div>
+  </ul>
+
+  <i class='fa fa-remove'></i>
+  <main-controller class="videos"></main-controller>
+
+  <!-- In production use:
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/x.x.x/angular.min.js"></script>
+  -->
+  <script src="bower_components/angular/angular.js"></script>
+  <script src="bower_components/angular-route/angular-route.js"></script>
+  <script src="app.js"></script>
+  <script src="components/channel-engine-video.module.js"></script>
+  <script src="components/channel-engine-video.component.js"></script>
+  <script src="components/main-controller.component.js"></script>
+</body>
+</html>
