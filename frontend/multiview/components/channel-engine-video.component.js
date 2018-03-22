@@ -45,7 +45,7 @@ angular.module('channelEngineMultiview')
 
       self._initiatePlayer = function(hlsUri) {
         return new Promise(function(resolve, reject) {
-          if (/Safari/.test(navigator.userAgent)) {
+          if (self.videoElement.canPlayType('application/vnd.apple.mpegurl')) {
             self.videoElement.src = hlsUri;
             self.videoElement.addEventListener('canplay', function() {
             });
@@ -79,11 +79,6 @@ angular.module('channelEngineMultiview')
                 }
               }
             });
-          } else if (self.videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-            self.videoElement.src = hlsUri;
-            self.videoElement.addEventListener('canplay', function() {
-            });
-            resolve(self.videoElement);
           } else {
             reject('Unsupported device');
           }
