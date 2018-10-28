@@ -38,6 +38,24 @@ class IFAssetManager {
       });
     });
   }
+
+  getNextVodById(sessionId, id) {
+    return new Promise((resolve, reject) => {
+      if (!this._sessions[sessionId]) {
+        this._sessions[sessionId] = {
+          position: 0,
+          playlist: 'random',
+        };
+      }
+      const assetUri = this._assetMgrUri + '/vod/' + id;
+      request.get(assetUri, (err, resp, body) => {
+        const data = JSON.parse(body);
+        resolve({ id: data.id, title: data.title || '', uri: data.uri });
+      }).on('error', err => {
+        reject(err);
+      });
+    });
+  }
 }
 
 const ifaceAssetMgr = new IFAssetManager(ASSETMGR_URI);
